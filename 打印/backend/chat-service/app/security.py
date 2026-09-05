@@ -3,9 +3,10 @@ import hashlib
 import hmac
 import json
 import time
+import urllib.parse
 import uuid
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Set, Tuple
 
 from fastapi import Depends, HTTPException, Request
 
@@ -95,3 +96,54 @@ async def require_admin(principal: Principal = Depends(require_principal)) -> Pr
     if principal.type != "admin":
         raise HTTPException(status_code=403, detail="admin permission required")
     return principal
+
+
+def _mysql_backend() -> bool:
+    return settings.DATABASE_URL.startswith(("mysql://", "mysql+pymysql://"))
+
+
+def _load_printshop_rbac(account_id: int) -> Tuple[Set[str], Set[str]]:
+    """跨库查询 print_shop.v_account_roles / v_account_perms（与应用层共用同一 MySQL 账户）。"""
+    import pymysql
+
+    parsed = urllib.parse.urlparse(settings.DATABASE_URL.replace("mysql+pymysql://", "mysql://", 1))
+    query = urllib.parse.parse_qs(parsed.query)
+    conn = pymysql.connect(
+        cursorclass=pymysql.cursors.DictCursor,
+        autocommit=True,
+        host=parsed.hostname or "mysql",
+        port=parsed.port or 3306,
+        user=urllib.parse.unquote(parsed.username or ""),
+        password=urllib.parse.unquote(parsed.password or ""),
+        database="print_shop",
+        charset=query.get("charset", ["utf8mb4"])[0],
+    )
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT role_key FROM v_account_roles WHERE account_id = %s", [account_id])
+            roles = {str(row["role_key"]) for row in cursor.fetchall()}
+            cursor.execute("SELECT DISTINCT permission FROM v_account_perms WHERE account_id = %s", [account_id])
+            perms = {str(row["permission"]) for row in cursor.fetchall()}
+    finally:
+        conn.close()
+    return roles, perms
+
+
+def require_permission(*permissions: str):
+    """管理端权限点校验：superadmin 代码级直通，其余管理员按 print_shop RBAC 权限集合判定。
+
+    print_shop 权限库不可用时 fail-closed（503），sqlite 本地兜底仅保留管理员类型检查。
+    """
+
+    async def dependency(principal: Principal = Depends(require_admin)) -> Principal:
+        if not _mysql_backend():
+            return principal
+        try:
+            roles, perms = _load_printshop_rbac(principal.id)
+        except Exception:
+            raise HTTPException(status_code=503, detail="permission service unavailable") from None
+        if "superadmin" in roles or any(perm in perms for perm in permissions):
+            return principal
+        raise HTTPException(status_code=403, detail="permission denied: " + ", ".join(permissions))
+
+    return dependency

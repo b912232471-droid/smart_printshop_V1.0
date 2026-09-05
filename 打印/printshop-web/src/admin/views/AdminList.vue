@@ -3,7 +3,7 @@
     <a-card class="content-card" :bordered="false">
       <div class="page-toolbar">
         <div class="page-toolbar__title"><h2>管理员管理</h2><p>维护后台账号、角色和启用状态</p></div>
-        <a-button type="primary" :disabled="currentAdminRole !== 'superadmin'" @click="showRegisterDialog"><PlusOutlined />新增管理员</a-button>
+        <a-button v-permission="'print:admin:add'" type="primary" @click="showRegisterDialog"><PlusOutlined />新增管理员</a-button>
       </div>
       <a-table :columns="columns" :data-source="admins" :loading="loading" row-key="id" :scroll="{ x: 980 }">
         <template #bodyCell="{ column, record }">
@@ -22,7 +22,7 @@
         <a-form-item v-if="!isEdit" label="初始密码" required><a-input-password v-model:value="form.password" /></a-form-item>
         <template v-if="!isEdit"><a-form-item label="图片验证码" required><div class="verify-row"><a-input v-model:value="form.captchaCode" maxlength="4" placeholder="4位验证码" /><button class="captcha-image" type="button" @click="loadCaptcha"><img v-if="captchaImage" :src="captchaImage" alt="验证码" /><span v-else>刷新</span></button></div></a-form-item><a-form-item label="邮箱验证码" required><div class="verify-row"><a-input v-model:value="form.emailCode" maxlength="6" placeholder="6位验证码" /><a-button :loading="emailSending" :disabled="countdown > 0" @click="sendAdminCode">{{ countdown > 0 ? `${countdown}s` : '发送验证码' }}</a-button></div></a-form-item></template>
         <a-form-item label="手机号"><a-input v-model:value="form.phone" /></a-form-item>
-        <a-row :gutter="16"><a-col :span="12"><a-form-item label="角色"><a-select v-model:value="form.role" style="width: 100%"><a-select-option value="admin">管理员</a-select-option><a-select-option value="operator">操作员</a-select-option><a-select-option v-if="currentAdminRole === 'superadmin'" value="superadmin">超级管理员</a-select-option></a-select></a-form-item></a-col><a-col :span="12"><a-form-item label="状态"><a-radio-group v-model:value="form.status"><a-radio :value="1">启用</a-radio><a-radio :value="0">禁用</a-radio></a-radio-group></a-form-item></a-col></a-row>
+        <a-row :gutter="16"><a-col :span="12"><a-form-item label="角色"><a-select v-model:value="form.role" style="width: 100%"><a-select-option value="admin">管理员</a-select-option><a-select-option value="operator">操作员</a-select-option><a-select-option v-if="permissionStore.isSuperAdmin" value="superadmin">超级管理员</a-select-option></a-select></a-form-item></a-col><a-col :span="12"><a-form-item label="状态"><a-radio-group v-model:value="form.status"><a-radio :value="1">启用</a-radio><a-radio :value="0">禁用</a-radio></a-radio-group></a-form-item></a-col></a-row>
       </a-form>
     </a-modal>
 
@@ -37,17 +37,19 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import { adminApi } from '@/api'
+import { usePermissionStore } from '@/stores/permission'
 
+const permissionStore = usePermissionStore()
 const loading = ref(false); const admins = ref([]); const dialogVisible = ref(false); const passwordDialogVisible = ref(false); const isEdit = ref(false)
 const captchaId = ref(''); const captchaImage = ref(''); const emailSending = ref(false); const countdown = ref(0); let timer
-const currentAdminId = ref(Number(localStorage.getItem('admin_id') || 0)); const currentAdminRole = ref(localStorage.getItem('admin_role') || '')
+const currentAdminId = ref(Number(localStorage.getItem('admin_id') || 0))
 const form = ref({ id: null, username: '', password: '', realName: '', phone: '', email: '', emailCode: '', captchaCode: '', role: 'admin', status: 1 })
 const passwordForm = ref({ id: null, oldPassword: '', newPassword: '', confirmPassword: '' })
 const columns = [{ title: '管理员', key: 'username', width: 210 }, { title: '联系方式', key: 'contact', width: 220 }, { title: '角色', key: 'role', width: 120 }, { title: '状态', key: 'status', width: 100 }, { title: '最后登录', dataIndex: 'lastLoginTime', key: 'lastLoginTime', width: 180 }, { title: '操作', key: 'action', width: 210 }]
 const loadAdmins = async () => { loading.value = true; try { admins.value = await adminApi.getAll() || [] } finally { loading.value = false } }
-const canDelete = row => row.id !== currentAdminId.value && currentAdminRole.value === 'superadmin'
-const canEdit = row => currentAdminRole.value === 'superadmin' && row.id !== currentAdminId.value
-const canChangePassword = row => row.id === currentAdminId.value || currentAdminRole.value === 'superadmin'
+const canDelete = row => row.id !== currentAdminId.value && permissionStore.hasPerm('print:admin:delete')
+const canEdit = row => row.id !== currentAdminId.value && permissionStore.hasPerm('print:admin:update')
+const canChangePassword = row => row.id === currentAdminId.value || permissionStore.hasPerm('print:admin:resetPwd')
 const getRoleText = role => ({ admin: '管理员', operator: '操作员', superadmin: '超级管理员' }[role] || role)
 const getRoleColor = role => ({ admin: 'blue', operator: 'default', superadmin: 'red' }[role] || 'default')
 const showRegisterDialog = () => { isEdit.value = false; form.value = { id: null, username: '', password: '', realName: '', phone: '', email: '', emailCode: '', captchaCode: '', role: 'admin', status: 1 }; dialogVisible.value = true; loadCaptcha() }

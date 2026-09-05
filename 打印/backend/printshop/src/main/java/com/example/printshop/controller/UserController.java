@@ -26,6 +26,9 @@ public class UserController {
     @PutMapping("/")
     public int updateUser(@RequestBody User user) {
         requireSelfOrAdmin(user.getId());
+        if (AuthContext.get().isAdmin()) {
+            AuthContext.requirePermission("print:user:update");
+        }
         User existing = userService.getUserById(user.getId());
         if (existing == null) {
             throw ApiException.notFound("用户不存在");
@@ -37,7 +40,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteUser(@PathVariable Integer id) {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:user:delete");
         Map<String, Object> response = new HashMap<>();
         
         // 1. 检查是否是admin账户（假设admin的ID是1，或者通过username判断）
@@ -64,7 +67,7 @@ public class UserController {
 
     @GetMapping("/")
     public List<User> getAllUsers() {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:user:list");
         return userService.getAllUsers().stream()
                 .map(this::publicUser)
                 .toList();

@@ -16,7 +16,7 @@
             <template #prefix><SearchOutlined /></template>
           </a-input>
           <a-button :loading="loading" @click="loadServices"><ReloadOutlined />刷新</a-button>
-          <a-button type="primary" @click="showAddDialog"><PlusOutlined />新增服务</a-button>
+          <a-button v-permission="'print:service:add'" type="primary" @click="showAddDialog"><PlusOutlined />新增服务</a-button>
         </div>
       </div>
 
@@ -49,8 +49,8 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <div class="table-actions">
-              <a-button type="link" size="small" @click="editService(record)">编辑</a-button>
-              <a-button type="link" danger size="small" @click="deleteService(record.id)">删除</a-button>
+              <a-button v-permission="'print:service:update'" type="link" size="small" @click="editService(record)">编辑</a-button>
+              <a-button v-permission="'print:service:delete'" type="link" danger size="small" @click="deleteService(record.id)">删除</a-button>
             </div>
           </template>
         </template>

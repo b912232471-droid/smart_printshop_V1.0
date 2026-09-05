@@ -2,7 +2,7 @@
   <div class="page-shell">
     <div class="page-toolbar">
       <div class="page-toolbar__title"><h2>订单详情</h2><p>订单 {{ order.queueNumber || route.params.id }} 的完整信息</p></div>
-      <div class="toolbar-actions"><a-button @click="router.back()"><ArrowLeftOutlined />返回</a-button><a-button type="primary" @click="showUpdateDialog">更新状态</a-button></div>
+      <div class="toolbar-actions"><a-button @click="router.back()"><ArrowLeftOutlined />返回</a-button><a-button v-permission="'print:order:update'" type="primary" @click="showUpdateDialog">更新状态</a-button></div>
     </div>
 
     <a-spin :spinning="loading">

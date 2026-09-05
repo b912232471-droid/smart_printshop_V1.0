@@ -70,6 +70,7 @@ import {
   DashboardOutlined, LogoutOutlined, SafetyCertificateOutlined, SaveOutlined
 } from '@ant-design/icons-vue'
 import { adminApi, userApi } from '@/api'
+import { usePermissionStore } from '@/stores/permission'
 
 const router = useRouter()
 const username = ref(localStorage.getItem('admin_user') || 'Admin')
@@ -138,6 +139,7 @@ async function changePassword() {
 
 function clearSession() {
   ['admin_token', 'admin_token_expires_at', 'admin_user', 'admin_id', 'admin_role'].forEach(key => localStorage.removeItem(key))
+  usePermissionStore().reset()
 }
 
 function handleLogout() {

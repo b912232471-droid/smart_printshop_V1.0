@@ -2,7 +2,8 @@
 
 | 项 | 内容 |
 |---|---|
-| 版本 | V1.0（2026-09-05） |
+| 版本 | V1.0（2026-09-05）；V1.01（2026-09-06）Phase 1-3 开发落地 |
+| 实施状态 | **Phase 1 数据层 / Phase 2 权限内核 / Phase 3 前端动态化 已完成**；Phase 4 登录收口、Phase 5 数据权限待后续（见第 7 节） |
 | 对标模型 | 若依（RuoYi）/ 芋道（ruoyi-vue-pro、yu-dao-cloud）RBAC 权限架构 |
 | 配套 SQL | `打印/backend/mysql/init/007_rbac_schema.sql`（已随本方案交付，可直接执行） |
 | 改造范围 | 仅管理端（admin 链路）；用户端（client / 小程序）不引入 RBAC，保持现状 |
@@ -440,12 +441,16 @@ SELECT COUNT(*) FROM `v_account_perms` WHERE `account_id` =
 
 ## 7. 分阶段实施路线
 
-### Phase 1：数据层就位（本方案已交付）
+### Phase 1：数据层就位（✅ 已完成 2026-09-06）
 
 - 内容：执行 `007_rbac_schema.sql`（第 5 节）。
 - 验收：4 表 + 2 视图建立、4 内置角色 + 30 条菜单种子 + 授权矩阵就位、存量账户全部回填（验证 SQL 通过）、现有业务零感知。
 
-### Phase 2：print-service 权限内核
+### Phase 2：print-service 权限内核（✅ 已完成 2026-09-06）
+
+- 实际落地：`AccountMapper.selectWithPermsById` 将 `v_account_perms` 权限集合合并进 `AuthInterceptor` 既有的一次查库（GROUP_CONCAT，未新增请求数）；`AuthPrincipal.perms` + `AuthContext.requirePermission(String)`（superadmin 代码级直通）；检查点替换 22 处（管理员 6、订单 5 含共享 `requireOrderAccess` 管理员路径、门店 5、服务 3、用户 3）；`AdminServiceImpl.register/update/delete`、`AccountServiceImpl.registerUser` 同一事务内双写 `sys_user_role` + `user_account.role`（删除账户同步清理 `sys_user_role`）。
+- 保留 `requireAdmin`（无对应权限点，属预期）：文件上传/删除/门店图片（FileInfoController）、`/api/ocr/status`（OcrController）、管理员自助改密。
+- 注意：GROUP_CONCAT 默认上限 1024 字节，当前 25 个权限点约 570 字节；权限点大幅增长时需调大 `group_concat_max_len`。
 
 - `AccountMapper` 新增一次性查询（合并现有 `requireActive` 查库，**不增加请求数**）：
   ```sql
@@ -468,7 +473,10 @@ SELECT COUNT(*) FROM `v_account_perms` WHERE `account_id` =
 - 可选：权限集合 Redis 缓存（TTL 5min，改角色时主动失效）——本地规模下可先不做。
 - 验收：operator 登录后调 `/api/print/admin/register` 返回 403；admin 正常；全链路回归订单/文件/门店流程。
 
-### Phase 3：前端动态化（printshop-web）
+### Phase 3：前端动态化（printshop-web）（✅ 已完成 2026-09-06）
+
+- 实际落地：`GET /api/auth/permissions`（管理端 JWT，返回 `{roles, perms, menus}`，superadmin 下发全量）；Pinia `permission` store（`@/stores/permission`，`hasPerm/hasMenu/firstMenuPath`）；路由守卫按 `meta.permission` 拦截（无权访问重定向到首个可见菜单，全部不可见则强制下线）；Layout 菜单按后端 `menus` 过滤渲染（图标/分组保留前端注册表）；自定义 `v-permission` 指令（无权移除 DOM）+ `AdminList.vue` localStorage 硬判断全部替换为 store 判断；OrderList/OrderDetail/ServiceList/StoreList/UserList/KnowledgeBase 操作按钮挂权限点；登出与 401/403 同步重置权限缓存。
+- chat-service（原定 Phase 2 收尾小批量，已随本次完成）：17 个管理端接口 `require_admin` → `require_permission("chat:knowledge:manage/import/delete")`，跨库查询 `print_shop.v_account_roles/v_account_perms`，superadmin 直通，权限库不可用时 fail-closed（503）。
 
 - 新增 `GET /api/auth/permissions`（管理端 JWT）：返回 `{ roles, perms, menus }`（menus 来自 `sys_menu` 中当前角色可见的 C/F 节点）。
 - Pinia 增加 `permission` store；`router/index.js` 管理端路由改 `router.addRoute()` 动态注册（静态表保留兜底重定向）；`Layout.vue` 菜单按 `menus` 渲染。

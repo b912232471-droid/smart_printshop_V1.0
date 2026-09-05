@@ -3,7 +3,7 @@
     <a-card class="content-card" :bordered="false">
       <div class="page-toolbar">
         <div class="page-toolbar__title"><h2>门店管理</h2><p>维护打印门店、设备、服务范围和地图位置</p></div>
-        <div class="toolbar-actions"><a-button :loading="loading" @click="loadStores"><ReloadOutlined />刷新</a-button><a-button type="primary" @click="showAddDialog"><PlusOutlined />新增门店</a-button></div>
+        <div class="toolbar-actions"><a-button :loading="loading" @click="loadStores"><ReloadOutlined />刷新</a-button><a-button v-permission="'print:store:add'" type="primary" @click="showAddDialog"><PlusOutlined />新增门店</a-button></div>
       </div>
       <a-table class="desktop-table" :columns="columns" :data-source="stores" :loading="loading" row-key="id" :scroll="{ x: 1160 }">
         <template #bodyCell="{ column, record }">
@@ -11,10 +11,10 @@
           <template v-else-if="column.key === 'address'"><div class="address-cell"><span>{{ record.address }}</span><small>{{ record.latitude }}, {{ record.longitude }}</small></div></template>
           <template v-else-if="column.key === 'services'"><a-space wrap><a-tag v-for="item in splitServices(record.services)" :key="item">{{ item }}</a-tag></a-space></template>
           <template v-else-if="column.key === 'status'"><a-badge :status="record.status === 1 ? 'success' : 'default'" :text="record.status === 1 ? '营业' : '停业'" /></template>
-          <template v-else-if="column.key === 'action'"><div class="table-actions"><a-button type="link" size="small" @click="editStore(record)">编辑</a-button><a-button type="link" danger size="small" @click="deleteStore(record)">删除</a-button></div></template>
+          <template v-else-if="column.key === 'action'"><div class="table-actions"><a-button v-permission="'print:store:update'" type="link" size="small" @click="editStore(record)">编辑</a-button><a-button v-permission="'print:store:delete'" type="link" danger size="small" @click="deleteStore(record)">删除</a-button></div></template>
         </template>
       </a-table>
-      <div class="mobile-list"><a-card v-for="store in stores" :key="store.id" size="small" class="mobile-store-card"><div class="store-cell"><a-image :width="48" :height="48" :src="getImageUrl(store.imageUrl)" :preview="false" /><div><strong>{{ store.shortName || store.name }}</strong><span>{{ store.address }}</span></div><a-badge :status="store.status === 1 ? 'success' : 'default'" /></div><div class="mobile-store-meta"><span>{{ store.phone || '未填写电话' }}</span><span>{{ store.hours }}</span></div><div class="mobile-actions"><a-button size="small" @click="editStore(store)">编辑</a-button><a-button danger size="small" @click="deleteStore(store)">删除</a-button></div></a-card></div>
+      <div class="mobile-list"><a-card v-for="store in stores" :key="store.id" size="small" class="mobile-store-card"><div class="store-cell"><a-image :width="48" :height="48" :src="getImageUrl(store.imageUrl)" :preview="false" /><div><strong>{{ store.shortName || store.name }}</strong><span>{{ store.address }}</span></div><a-badge :status="store.status === 1 ? 'success' : 'default'" /></div><div class="mobile-store-meta"><span>{{ store.phone || '未填写电话' }}</span><span>{{ store.hours }}</span></div><div class="mobile-actions"><a-button v-permission="'print:store:update'" size="small" @click="editStore(store)">编辑</a-button><a-button v-permission="'print:store:delete'" danger size="small" @click="deleteStore(store)">删除</a-button></div></a-card></div>
     </a-card>
 
     <a-modal v-model:open="dialogVisible" :title="isEdit ? '编辑门店' : '新增门店'" width="900px" ok-text="保存" cancel-text="取消" @ok="submitForm" @after-close="resetForm">

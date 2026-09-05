@@ -42,7 +42,7 @@ from app.schemas import (
     RetrievalTestRequest,
     RetrievalTestResponse,
 )
-from app.security import Principal, require_admin, require_principal
+from app.security import Principal, require_permission, require_principal
 from app.store import ChatStore
 from app.tools import TOOL_DEFINITIONS, PlatformToolExecutor
 from app.vector_store import EmbeddingProvider, QdrantVectorStore
@@ -174,12 +174,12 @@ async def chat_status():
 
 
 @app.get("/api/chat/settings", response_model=ChatSettings)
-async def get_settings(_: Principal = Depends(require_admin)):
+async def get_settings(_: Principal = Depends(require_permission("chat:knowledge:manage"))):
     return await asyncio.to_thread(agent_store.get_settings)
 
 
 @app.put("/api/chat/settings", response_model=ChatSettings)
-async def update_settings(request: ChatSettingsUpdate, principal: Principal = Depends(require_admin)):
+async def update_settings(request: ChatSettingsUpdate, principal: Principal = Depends(require_permission("chat:knowledge:manage"))):
     unknown = sorted(set(request.allowedTools) - set(TOOL_DEFINITIONS))
     if unknown:
         raise HTTPException(status_code=400, detail="unknown tools: " + ", ".join(unknown))
@@ -231,18 +231,18 @@ async def create_feedback(request: FeedbackCreate, principal: Principal = Depend
 
 
 @app.get("/api/chat/admin/overview", response_model=AdminChatOverview)
-async def admin_overview(_: Principal = Depends(require_admin)):
+async def admin_overview(_: Principal = Depends(require_permission("chat:knowledge:manage"))):
     return AdminChatOverview(**(await asyncio.to_thread(agent_store.overview)))
 
 
 @app.get("/api/chat/documents", response_model=DocumentList)
-async def list_documents(_: Principal = Depends(require_admin)):
+async def list_documents(_: Principal = Depends(require_permission("chat:knowledge:manage"))):
     items = await asyncio.to_thread(agent_store.list_documents, True)
     return DocumentList(items=items, total=len(items))
 
 
 @app.post("/api/chat/documents/import", response_model=DocumentItem)
-async def import_document(request: MarkdownImportRequest, _: Principal = Depends(require_admin)):
+async def import_document(request: MarkdownImportRequest, _: Principal = Depends(require_permission("chat:knowledge:import"))):
     try:
         upload = await asyncio.to_thread(save_markdown, request.filename, request.contentBase64, request.title)
         document = await asyncio.to_thread(
@@ -261,13 +261,13 @@ async def import_document(request: MarkdownImportRequest, _: Principal = Depends
 
 
 @app.post("/api/chat/documents/retrieval-test", response_model=RetrievalTestResponse)
-async def test_document_retrieval(request: RetrievalTestRequest, _: Principal = Depends(require_admin)):
+async def test_document_retrieval(request: RetrievalTestRequest, _: Principal = Depends(require_permission("chat:knowledge:manage"))):
     contexts = await asyncio.to_thread(retriever.search, request.query.strip(), request.limit)
     return RetrievalTestResponse(query=request.query.strip(), sources=[item.source for item in contexts])
 
 
 @app.get("/api/chat/documents/{document_id}/chunks", response_model=list[DocumentChunkItem])
-async def document_chunks(document_id: int, _: Principal = Depends(require_admin)):
+async def document_chunks(document_id: int, _: Principal = Depends(require_permission("chat:knowledge:manage"))):
     try:
         await asyncio.to_thread(agent_store.get_document, document_id)
         return await asyncio.to_thread(agent_store.list_document_chunks, document_id)
@@ -279,7 +279,7 @@ async def document_chunks(document_id: int, _: Principal = Depends(require_admin
 async def replace_document(
     document_id: int,
     request: MarkdownImportRequest,
-    _: Principal = Depends(require_admin),
+    _: Principal = Depends(require_permission("chat:knowledge:import")),
 ):
     try:
         current = await asyncio.to_thread(agent_store.get_document, document_id)
@@ -302,7 +302,7 @@ async def replace_document(
 
 
 @app.post("/api/chat/documents/{document_id}/enabled", response_model=DocumentItem)
-async def set_document_enabled(document_id: int, enabled: bool = Query(...), _: Principal = Depends(require_admin)):
+async def set_document_enabled(document_id: int, enabled: bool = Query(...), _: Principal = Depends(require_permission("chat:knowledge:manage"))):
     try:
         return await asyncio.to_thread(agent_store.set_document_enabled, document_id, enabled)
     except KeyError:
@@ -312,7 +312,7 @@ async def set_document_enabled(document_id: int, enabled: bool = Query(...), _: 
 
 
 @app.post("/api/chat/documents/{document_id}/reindex", response_model=DocumentItem)
-async def reindex_document(document_id: int, _: Principal = Depends(require_admin)):
+async def reindex_document(document_id: int, _: Principal = Depends(require_permission("chat:knowledge:manage"))):
     try:
         await asyncio.to_thread(agent_store.get_document, document_id)
         job_id = await asyncio.to_thread(agent_store.create_ingestion_job, document_id)
@@ -323,7 +323,7 @@ async def reindex_document(document_id: int, _: Principal = Depends(require_admi
 
 
 @app.delete("/api/chat/documents/{document_id}")
-async def delete_document(document_id: int, _: Principal = Depends(require_admin)):
+async def delete_document(document_id: int, _: Principal = Depends(require_permission("chat:knowledge:delete"))):
     try:
         record = await asyncio.to_thread(agent_store.get_document_record, document_id)
         await asyncio.to_thread(vector_store.delete_document, document_id)
@@ -341,7 +341,7 @@ async def list_knowledge(
     keyword: str = "",
     category: str = "",
     includeDisabled: bool = Query(default=False),
-    _: Principal = Depends(require_admin),
+    _: Principal = Depends(require_permission("chat:knowledge:delete")),
 ):
     items, total = store.list_knowledge(keyword=keyword.strip(), category=category.strip(), include_disabled=includeDisabled)
     metrics.record_knowledge_operation("list")
@@ -349,7 +349,7 @@ async def list_knowledge(
 
 
 @app.post("/api/chat/knowledge/import", response_model=KnowledgeImportResponse)
-async def import_knowledge(request: KnowledgeImportRequest, _: Principal = Depends(require_admin)):
+async def import_knowledge(request: KnowledgeImportRequest, _: Principal = Depends(require_permission("chat:knowledge:import"))):
     try:
         result = import_knowledge_file(store, request.filename, request.contentBase64)
     except ValueError as exc:
@@ -359,7 +359,7 @@ async def import_knowledge(request: KnowledgeImportRequest, _: Principal = Depen
 
 
 @app.get("/api/chat/knowledge/{item_id}", response_model=KnowledgeItem)
-async def get_knowledge(item_id: int, _: Principal = Depends(require_admin)):
+async def get_knowledge(item_id: int, _: Principal = Depends(require_permission("chat:knowledge:manage"))):
     item = store.get_knowledge(item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="knowledge item not found")
@@ -368,14 +368,14 @@ async def get_knowledge(item_id: int, _: Principal = Depends(require_admin)):
 
 
 @app.post("/api/chat/knowledge/create", response_model=KnowledgeItem)
-async def create_knowledge(request: KnowledgeCreate, _: Principal = Depends(require_admin)):
+async def create_knowledge(request: KnowledgeCreate, _: Principal = Depends(require_permission("chat:knowledge:manage"))):
     item = store.create_knowledge(request)
     metrics.record_knowledge_operation("create")
     return item
 
 
 @app.put("/api/chat/knowledge/{item_id}", response_model=KnowledgeItem)
-async def update_knowledge(item_id: int, request: KnowledgeUpdate, _: Principal = Depends(require_admin)):
+async def update_knowledge(item_id: int, request: KnowledgeUpdate, _: Principal = Depends(require_permission("chat:knowledge:manage"))):
     try:
         item = store.update_knowledge(item_id, request)
         metrics.record_knowledge_operation("update")
@@ -385,7 +385,7 @@ async def update_knowledge(item_id: int, request: KnowledgeUpdate, _: Principal 
 
 
 @app.delete("/api/chat/knowledge/{item_id}")
-async def delete_knowledge(item_id: int, _: Principal = Depends(require_admin)):
+async def delete_knowledge(item_id: int, _: Principal = Depends(require_permission("chat:knowledge:delete"))):
     try:
         store.delete_knowledge(item_id)
         metrics.record_knowledge_operation("delete")

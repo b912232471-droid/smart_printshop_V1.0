@@ -82,7 +82,7 @@ public class AdminController {
      */
     @PostMapping("/register")
     public Map<String, Object> register(@RequestBody Admin admin) {
-        AuthContext.requireSuperAdmin();
+        AuthContext.requirePermission("print:admin:add");
         mailVerificationService.verify(admin.getEmail(), QqMailVerificationService.ADMIN_REGISTER, admin.getEmailCode());
         Map<String, Object> result = new HashMap<>();
         
@@ -111,7 +111,7 @@ public class AdminController {
      */
     @GetMapping("/")
     public List<Admin> getAll() {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:admin:list");
         List<Admin> admins = adminService.getAll();
         // 清除密码
         admins.forEach(admin -> admin.setPassword(null));
@@ -123,7 +123,7 @@ public class AdminController {
      */
     @GetMapping("/{id}")
     public Admin getById(@PathVariable Integer id) {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:admin:list");
         Admin admin = adminService.getById(id);
         if (admin != null) {
             admin.setPassword(null);  // 不返回密码
@@ -136,7 +136,7 @@ public class AdminController {
      */
     @PutMapping("/")
     public int update(@RequestBody Admin admin) {
-        AuthContext.requireSuperAdmin();
+        AuthContext.requirePermission("print:admin:update");
         // 不允许通过这个接口修改密码
         Admin existing = adminService.getById(admin.getId());
         if (existing == null) {
@@ -152,7 +152,7 @@ public class AdminController {
      */
     @DeleteMapping("/{id}")
     public Map<String, Object> delete(@PathVariable Integer id) {
-        AuthContext.requireSuperAdmin();
+        AuthContext.requirePermission("print:admin:delete");
         Map<String, Object> result = new HashMap<>();
         
         try {
@@ -236,7 +236,7 @@ public class AdminController {
     @PostMapping("/accounts/{id}/reset-password")
     public ApiResponse<Void> resetAccountPassword(@PathVariable Integer id,
                                                    @RequestBody Map<String, String> params) {
-        AuthContext.requireSuperAdmin();
+        AuthContext.requirePermission("print:admin:resetPwd");
         accountService.resetPassword(id, params == null ? null : params.get("newPassword"));
         return ApiResponse.ok(null);
     }

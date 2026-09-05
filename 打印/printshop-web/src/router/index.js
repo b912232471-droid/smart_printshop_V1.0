@@ -29,19 +29,19 @@ const routes = [
     path: '/',
     component: () => import('@admin/views/Layout.vue'),
     children: [
-      { path: 'dashboard', name: 'Dashboard', component: () => import('@admin/views/Dashboard.vue'), meta: { title: '工作台', adminAuth: true } },
-      { path: 'orders', name: 'OrderList', component: () => import('@admin/views/OrderList.vue'), meta: { title: '订单管理', adminAuth: true } },
-      { path: 'orders/:id', name: 'OrderDetail', component: () => import('@admin/views/OrderDetail.vue'), meta: { title: '订单详情', adminAuth: true } },
-      { path: 'services', name: 'ServiceList', component: () => import('@admin/views/ServiceList.vue'), meta: { title: '服务管理', adminAuth: true } },
-      { path: 'users', name: 'UserList', component: () => import('@admin/views/UserList.vue'), meta: { title: '用户管理', adminAuth: true } },
-      { path: 'stores', name: 'StoreList', component: () => import('@admin/views/StoreList.vue'), meta: { title: '店铺管理', adminAuth: true } },
-      { path: 'knowledge', name: 'KnowledgeBase', component: () => import('@admin/views/KnowledgeBase.vue'), meta: { title: '客服知识库', adminAuth: true } },
+      { path: 'dashboard', name: 'Dashboard', component: () => import('@admin/views/Dashboard.vue'), meta: { title: '工作台', adminAuth: true, permission: 'print:dashboard:view' } },
+      { path: 'orders', name: 'OrderList', component: () => import('@admin/views/OrderList.vue'), meta: { title: '订单管理', adminAuth: true, permission: 'print:order:list' } },
+      { path: 'orders/:id', name: 'OrderDetail', component: () => import('@admin/views/OrderDetail.vue'), meta: { title: '订单详情', adminAuth: true, permission: 'print:order:query' } },
+      { path: 'services', name: 'ServiceList', component: () => import('@admin/views/ServiceList.vue'), meta: { title: '服务管理', adminAuth: true, permission: 'print:service:list' } },
+      { path: 'users', name: 'UserList', component: () => import('@admin/views/UserList.vue'), meta: { title: '用户管理', adminAuth: true, permission: 'print:user:list' } },
+      { path: 'stores', name: 'StoreList', component: () => import('@admin/views/StoreList.vue'), meta: { title: '店铺管理', adminAuth: true, permission: 'print:store:list' } },
+      { path: 'knowledge', name: 'KnowledgeBase', component: () => import('@admin/views/KnowledgeBase.vue'), meta: { title: '客服知识库', adminAuth: true, permission: 'chat:knowledge:manage' } },
       { path: 'photo', name: 'AdminPhoto', component: () => import('@admin/views/Photo.vue'), meta: { title: 'AI 证件照', adminAuth: true } },
       { path: 'schedule', name: 'AdminSchedule', component: () => import('@admin/views/Schedule.vue'), meta: { title: '课表查询', adminAuth: true } },
       { path: 'ocr', name: 'AdminOcr', component: () => import('@admin/views/Ocr.vue'), meta: { title: 'OCR 文档转换', adminAuth: true } },
       { path: 'chat', name: 'AdminChat', component: () => import('@admin/views/Chat.vue'), meta: { title: '智能客服', adminAuth: true } },
       { path: 'profile', name: 'AdminProfile', component: () => import('@admin/views/Profile.vue'), meta: { title: '个人中心', adminAuth: true } },
-      { path: 'admins', name: 'AdminList', component: () => import('@admin/views/AdminList.vue'), meta: { title: '管理员管理', adminAuth: true } }
+      { path: 'admins', name: 'AdminList', component: () => import('@admin/views/AdminList.vue'), meta: { title: '管理员管理', adminAuth: true, permission: 'print:admin:list' } }
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/login' }
@@ -49,7 +49,7 @@ const routes = [
 
 const router = createRouter({ history: createWebHistory('/'), routes, scrollBehavior: () => ({ top: 0 }) })
 
-router.beforeEach(to => {
+router.beforeEach(async to => {
   NProgress.start()
   document.title = translateText(`${to.meta.title || '智慧打印'} - 智慧在线打印平台`)
 
@@ -60,6 +60,22 @@ router.beforeEach(to => {
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_token_expires_at')
       return { path: '/login', query: { mode: 'admin', redirect: to.fullPath } }
+    }
+    const { usePermissionStore } = await import('@admin/stores/permission')
+    const permissionStore = usePermissionStore()
+    try {
+      await permissionStore.load()
+    } catch (error) {
+      return false
+    }
+    const required = to.meta.permission
+    if (required && !permissionStore.hasPerm(required)) {
+      const fallback = permissionStore.firstMenuPath
+      if (to.path !== fallback) return { path: fallback }
+      localStorage.removeItem('admin_token')
+      localStorage.removeItem('admin_token_expires_at')
+      permissionStore.reset()
+      return { path: '/login', query: { mode: 'admin' } }
     }
   }
 

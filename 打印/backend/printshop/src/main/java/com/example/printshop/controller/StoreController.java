@@ -16,9 +16,9 @@ public class StoreController {
 
     // 获取所有店铺
     @GetMapping("/")
-    public List<Store> getAll() { 
-        AuthContext.requireAdmin();
-        return service.getAll(); 
+    public List<Store> getAll() {
+        AuthContext.requirePermission("print:store:list");
+        return service.getAll();
     }
 
     // 获取营业中的店铺
@@ -31,30 +31,30 @@ public class StoreController {
 
     // 获取单个店铺
     @GetMapping("/{id}")
-    public Store getById(@PathVariable Integer id) { 
-        AuthContext.requireAdmin();
-        return service.getById(id); 
+    public Store getById(@PathVariable Integer id) {
+        AuthContext.requirePermission("print:store:list");
+        return service.getById(id);
     }
 
     // 新增店铺（管理员功能）
     @PostMapping("/")
-    public int add(@RequestBody Store store) { 
-        AuthContext.requireAdmin();
-        return service.add(store); 
+    public int add(@RequestBody Store store) {
+        AuthContext.requirePermission("print:store:add");
+        return service.add(store);
     }
 
     // 更新店铺（管理员功能）
     @PutMapping("/")
-    public int update(@RequestBody Store store) { 
-        AuthContext.requireAdmin();
-        return service.update(store); 
+    public int update(@RequestBody Store store) {
+        AuthContext.requirePermission("print:store:update");
+        return service.update(store);
     }
 
     // 删除店铺（管理员功能）
     @DeleteMapping("/{id}")
-    public int delete(@PathVariable Integer id) { 
-        AuthContext.requireAdmin();
-        return service.delete(id); 
+    public int delete(@PathVariable Integer id) {
+        AuthContext.requirePermission("print:store:delete");
+        return service.delete(id);
     }
 
     private Store publicStore(Store source) {

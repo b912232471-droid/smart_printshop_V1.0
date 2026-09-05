@@ -8,6 +8,7 @@ import java.util.List;
 @Mapper
 public interface AccountMapper {
     Account selectById(Integer id);
+    Account selectWithPermsById(Integer id);
     Account selectByUsername(String username);
     Account selectByEmailHash(String emailHash);
     List<Account> selectMissingEmailHashes();

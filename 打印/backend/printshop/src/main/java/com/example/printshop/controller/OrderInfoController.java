@@ -18,7 +18,7 @@ public class OrderInfoController {
 
     @GetMapping("/{id}")
     public OrderInfo getOrderById(@PathVariable Integer id) {
-        OrderInfo order = requireOrderAccess(id);
+        OrderInfo order = requireOrderAccess(id, "print:order:query");
         return order;
     }
 
@@ -62,13 +62,13 @@ public class OrderInfoController {
     public int updateOrderStatus(@PathVariable Integer orderId,
                                   @RequestParam Integer status,
                                   @RequestParam(required = false) String fetchCode) {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:order:update");
         return orderInfoService.updateOrderStatus(orderId, status, fetchCode);
     }
 
     @PostMapping("/{orderId}/cancel")
     public int cancelOrder(@PathVariable Integer orderId) {
-        OrderInfo order = requireOrderAccess(orderId);
+        OrderInfo order = requireOrderAccess(orderId, "print:order:cancel");
         if (order.getOrderStatus() != null && order.getOrderStatus() > 0) {
             throw ApiException.badRequest("只能取消待处理订单");
         }
@@ -77,13 +77,13 @@ public class OrderInfoController {
 
     @DeleteMapping("/{id}")
     public int deleteOrder(@PathVariable Integer id) {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:order:delete");
         return orderInfoService.deleteOrder(id);
     }
 
     @GetMapping("/")
     public List<OrderInfo> getAllOrders() {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:order:list");
         return orderInfoService.getAllOrders();
     }
 
@@ -94,13 +94,16 @@ public class OrderInfoController {
         return orderInfoService.getQueueCount();
     }
 
-    private OrderInfo requireOrderAccess(Integer orderId) {
+    private OrderInfo requireOrderAccess(Integer orderId, String adminPermission) {
         OrderInfo order = orderInfoService.getOrderById(orderId);
         if (order == null) {
             throw ApiException.notFound("订单不存在");
         }
         AuthPrincipal principal = AuthContext.get();
         if (principal.isAdmin()) {
+            if (adminPermission != null) {
+                AuthContext.requirePermission(adminPermission);
+            }
             return order;
         }
         if (principal.isUser() && order.getUserId() != null && order.getUserId().equals(principal.getId())) {

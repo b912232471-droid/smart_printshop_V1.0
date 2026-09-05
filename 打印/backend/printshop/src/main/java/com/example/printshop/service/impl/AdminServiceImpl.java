@@ -3,28 +3,33 @@ package com.example.printshop.service.impl;
 import com.example.printshop.common.ApiException;
 import com.example.printshop.entity.Admin;
 import com.example.printshop.mapper.AdminMapper;
+import com.example.printshop.mapper.RbacMapper;
 import com.example.printshop.security.FieldCryptoService;
 import com.example.printshop.security.QqEmailAddress;
 import com.example.printshop.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class AdminServiceImpl implements AdminService {
     private static final Set<String> ALLOWED_ROLES = Set.of("superadmin", "admin", "operator");
-    
+
     @Autowired
     private AdminMapper adminMapper;
+
+    @Autowired
+    private RbacMapper rbacMapper;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private FieldCryptoService fieldCryptoService;
-    
+
     @Override
     public Admin getById(Integer id) {
         return decrypt(adminMapper.selectById(id));
@@ -43,6 +48,7 @@ public class AdminServiceImpl implements AdminService {
     }
     
     @Override
+    @Transactional
     public int register(Admin admin) {
         validateAdminProfile(admin, false);
         validateNewPassword(admin.getPassword());
@@ -56,7 +62,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setEmail(email);
         admin.setEmailHash(emailHash);
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
-        
+
         // 默认角色和状态
         if (admin.getRole() == null) {
             admin.setRole("admin");
@@ -66,10 +72,15 @@ public class AdminServiceImpl implements AdminService {
         }
 
         encrypt(admin);
-        return adminMapper.insert(admin);
+        int rows = adminMapper.insert(admin);
+        if (rows > 0) {
+            syncUserRole(admin.getId(), admin.getRole());
+        }
+        return rows;
     }
-    
+
     @Override
+    @Transactional
     public int update(Admin admin) {
         validateAdminProfile(admin, true);
         String email = QqEmailAddress.normalize(admin.getEmail());
@@ -82,19 +93,39 @@ public class AdminServiceImpl implements AdminService {
         admin.setEmail(email);
         admin.setEmailHash(emailHash);
         encrypt(admin);
-        return adminMapper.update(admin);
+        int rows = adminMapper.update(admin);
+        if (rows > 0) {
+            rbacMapper.deleteUserRoles(admin.getId());
+            syncUserRole(admin.getId(), admin.getRole());
+        }
+        return rows;
     }
-    
+
     @Override
+    @Transactional
     public int delete(Integer id) {
         // 不能删除超级管理员
         Admin admin = adminMapper.selectById(id);
         if (admin != null && "superadmin".equals(admin.getRole())) {
             throw ApiException.forbidden("不能删除超级管理员");
         }
-        return adminMapper.delete(id);
+        int rows = adminMapper.delete(id);
+        if (rows > 0) {
+            rbacMapper.deleteUserRoles(id);
+        }
+        return rows;
     }
-    
+
+    private void syncUserRole(Integer accountId, String roleKey) {
+        if (accountId == null || roleKey == null || roleKey.isBlank()) {
+            return;
+        }
+        Integer roleId = rbacMapper.selectRoleIdByKey(roleKey);
+        if (roleId != null) {
+            rbacMapper.insertUserRole(accountId, roleId);
+        }
+    }
+
     @Override
     public Admin login(String email, String password) {
         String normalizedEmail = QqEmailAddress.normalize(email);

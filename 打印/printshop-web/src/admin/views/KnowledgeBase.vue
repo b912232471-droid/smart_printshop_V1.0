@@ -90,7 +90,7 @@
           <a-space>
             <a-button @click="openRetrievalTest"><SearchOutlined />测试检索</a-button>
             <a-upload accept=".md,.markdown" :show-upload-list="false" :before-upload="handleMarkdownUpload">
-              <a-button type="primary" :loading="documentImporting"><UploadOutlined />导入 Markdown</a-button>
+              <a-button v-permission="'chat:knowledge:import'" type="primary" :loading="documentImporting"><UploadOutlined />导入 Markdown</a-button>
             </a-upload>
           </a-space>
         </div>
@@ -116,7 +116,7 @@
                 <a-tooltip :title="record.status === 'failed' || record.ingestionStatus === 'failed' ? '重试' : '重建索引'">
                   <a-button type="text" shape="circle" @click="reindex(record)"><ReloadOutlined /></a-button>
                 </a-tooltip>
-                <a-tooltip title="删除文档"><a-button type="text" danger shape="circle" @click="removeDocument(record)"><DeleteOutlined /></a-button></a-tooltip>
+                <a-tooltip title="删除文档"><a-button v-permission="'chat:knowledge:delete'" type="text" danger shape="circle" @click="removeDocument(record)"><DeleteOutlined /></a-button></a-tooltip>
               </a-space>
             </template>
           </template>
@@ -132,7 +132,7 @@
             <a-button @click="loadKnowledge">查询</a-button>
           </div>
           <div class="toolbar-actions">
-            <a-upload accept=".csv,.xlsx" :show-upload-list="false" :before-upload="handleImportFile"><a-button :loading="importing"><UploadOutlined />批量导入</a-button></a-upload>
+            <a-upload accept=".csv,.xlsx" :show-upload-list="false" :before-upload="handleImportFile"><a-button v-permission="'chat:knowledge:import'" :loading="importing"><UploadOutlined />批量导入</a-button></a-upload>
             <a-button type="primary" @click="openCreate"><PlusOutlined />新增问答</a-button>
           </div>
         </div>
@@ -142,7 +142,7 @@
             <template v-else-if="column.key === 'category'"><a-tag color="blue">{{ record.category || '通用' }}</a-tag></template>
             <template v-else-if="column.key === 'tags'"><a-space wrap><a-tag v-for="tag in record.tags || []" :key="tag">{{ tag }}</a-tag><span v-if="!record.tags?.length" class="muted">无</span></a-space></template>
             <template v-else-if="column.key === 'enabled'"><a-badge :status="record.enabled ? 'success' : 'default'" :text="record.enabled ? '启用' : '停用'" /></template>
-            <template v-else-if="column.key === 'action'"><a-space><a-button type="link" size="small" @click="openEdit(record)">编辑</a-button><a-button type="link" danger size="small" @click="remove(record)">删除</a-button></a-space></template>
+            <template v-else-if="column.key === 'action'"><a-space><a-button type="link" size="small" @click="openEdit(record)">编辑</a-button><a-button v-permission="'chat:knowledge:delete'" type="link" danger size="small" @click="remove(record)">删除</a-button></a-space></template>
           </template>
         </a-table>
       </a-tab-pane>

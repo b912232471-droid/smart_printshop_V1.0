@@ -27,19 +27,19 @@ public class ServiceItemController {
 
     @PostMapping("/")
     public int add(@RequestBody ServiceItem item) {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:service:add");
         return service.add(item);
     }
 
     @PutMapping("/")
     public int update(@RequestBody ServiceItem item) {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:service:update");
         return service.update(item);
     }
 
     @DeleteMapping("/{id}")
     public int delete(@PathVariable Integer id) {
-        AuthContext.requireAdmin();
+        AuthContext.requirePermission("print:service:delete");
         return service.delete(id);
     }
 }

@@ -48,6 +48,14 @@ public final class AuthContext {
         return principal;
     }
 
+    public static AuthPrincipal requirePermission(String permission) {
+        AuthPrincipal principal = requireAdmin();
+        if (principal.isSuperAdmin() || principal.hasPerm(permission)) {
+            return principal;
+        }
+        throw ApiException.forbidden("permission denied: " + permission);
+    }
+
     public static void clear() {
         CURRENT.remove();
     }

@@ -18,4 +18,5 @@ public class Account {
     private String avatarUrl;
     private String createdAt;
     private String lastLoginAt;
+    private String perms;
 }

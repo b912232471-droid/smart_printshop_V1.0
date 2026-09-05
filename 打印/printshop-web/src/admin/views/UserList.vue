@@ -10,13 +10,13 @@
           <template v-if="column.key === 'user'"><div class="user-cell"><a-avatar :src="record.avatarUrl">{{ initial(record.username) }}</a-avatar><div><strong>{{ record.username || '未设置' }}</strong><span>ID: {{ record.id }}</span></div></div></template>
           <template v-else-if="column.key === 'phone'">{{ record.phone || '未绑定' }}</template>
           <template v-else-if="column.key === 'register'">{{ record.registerTime || record.createdAt || '-' }}</template>
-          <template v-else-if="column.key === 'action'"><div class="table-actions"><a-button type="link" size="small" @click="viewUserOrders(record)">查看订单</a-button><a-button type="link" danger size="small" @click="deleteUser(record)">删除</a-button></div></template>
+          <template v-else-if="column.key === 'action'"><div class="table-actions"><a-button type="link" size="small" @click="viewUserOrders(record)">查看订单</a-button><a-button v-permission="'print:user:delete'" type="link" danger size="small" @click="deleteUser(record)">删除</a-button></div></template>
         </template>
       </a-table>
       <div class="mobile-list">
         <a-card v-for="user in filteredUsers" :key="user.id" size="small" class="mobile-user-card">
           <div class="user-cell"><a-avatar :size="42" :src="user.avatarUrl">{{ initial(user.username) }}</a-avatar><div><strong>{{ user.username || '未设置' }}</strong><span>{{ user.phone || '未绑定手机号' }}</span></div></div>
-          <div class="mobile-actions"><a-button size="small" @click="viewUserOrders(user)">查看订单</a-button><a-button danger size="small" @click="deleteUser(user)">删除</a-button></div>
+          <div class="mobile-actions"><a-button size="small" @click="viewUserOrders(user)">查看订单</a-button><a-button v-permission="'print:user:delete'" danger size="small" @click="deleteUser(user)">删除</a-button></div>
         </a-card>
       </div>
     </a-card>

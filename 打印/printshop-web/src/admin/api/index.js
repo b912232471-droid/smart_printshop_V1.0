@@ -124,6 +124,9 @@ export const adminApi = {
   sendEmailCode(data) {
     return request.post(printPath('/auth/email/send'), data)
   },
+  getPermissions() {
+    return request.get(printPath('/auth/permissions'))
+  },
   login(email, password, captchaId, captchaCode) {
     return request.post(printPath('/admin/login'), { email, password, captchaId, captchaCode })
   },

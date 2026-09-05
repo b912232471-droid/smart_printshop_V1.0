@@ -23,8 +23,8 @@
           <template v-else-if="column.key === 'action'">
             <div class="table-actions">
               <a-button type="link" size="small" @click="viewDetail(record.id)">详情</a-button>
-              <a-button v-if="record.orderStatus < 3" type="link" size="small" @click="updateStatus(record)">更新状态</a-button>
-              <a-button v-else type="link" danger size="small" @click="deleteOrder(record)">删除</a-button>
+              <a-button v-if="record.orderStatus < 3" v-permission="'print:order:update'" type="link" size="small" @click="updateStatus(record)">更新状态</a-button>
+              <a-button v-else v-permission="'print:order:delete'" type="link" danger size="small" @click="deleteOrder(record)">删除</a-button>
             </div>
           </template>
         </template>
@@ -39,8 +39,8 @@
           <div class="mobile-card-row"><span>金额</span><b class="price-text">￥{{ order.totalPrice }}</b></div>
           <div class="mobile-card-actions">
             <a-button size="small" @click="viewDetail(order.id)">查看详情</a-button>
-            <a-button v-if="order.orderStatus < 3" type="primary" size="small" @click="updateStatus(order)">更新状态</a-button>
-            <a-button v-else danger size="small" @click="deleteOrder(order)">删除</a-button>
+            <a-button v-if="order.orderStatus < 3" v-permission="'print:order:update'" type="primary" size="small" @click="updateStatus(order)">更新状态</a-button>
+            <a-button v-else v-permission="'print:order:delete'" danger size="small" @click="deleteOrder(order)">删除</a-button>
           </div>
         </a-card>
       </div>

@@ -40,6 +40,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                     || !account.getUsername().equals(principal.getUsername())) {
                 throw ApiException.unauthorized("account token is stale");
             }
+            principal.setPerms(AuthPrincipal.parsePerms(account.getPerms()));
         }
         AuthContext.set(principal);
         return true;

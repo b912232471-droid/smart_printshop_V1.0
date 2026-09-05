@@ -36,6 +36,7 @@ request.interceptors.response.use(
       localStorage.removeItem('admin_user')
       localStorage.removeItem('admin_id')
       localStorage.removeItem('admin_role')
+      import('@/stores/permission').then(({ usePermissionStore }) => usePermissionStore().reset()).catch(() => {})
       if (router.currentRoute.value.path !== '/login') {
         router.replace({ path: '/login', query: { mode: 'admin' } })
       }

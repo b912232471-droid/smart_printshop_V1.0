@@ -6,11 +6,13 @@ import com.example.printshop.entity.Account;
 import com.example.printshop.entity.User;
 import com.example.printshop.security.AdminLoginGuard;
 import com.example.printshop.security.AuthContext;
+import com.example.printshop.security.AuthPrincipal;
 import com.example.printshop.security.JwtService;
 import com.example.printshop.security.LoginCaptchaService;
 import com.example.printshop.security.QqEmailAddress;
 import com.example.printshop.security.QqMailVerificationService;
 import com.example.printshop.service.AccountService;
+import com.example.printshop.service.RbacService;
 import com.example.printshop.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class AuthController {
     private final AccountService accountService;
     private final UserService userService;
+    private final RbacService rbacService;
     private final JwtService jwtService;
     private final AdminLoginGuard loginGuard;
     private final LoginCaptchaService captchaService;
@@ -34,12 +37,14 @@ public class AuthController {
 
     public AuthController(AccountService accountService,
                           UserService userService,
+                          RbacService rbacService,
                           JwtService jwtService,
                           AdminLoginGuard loginGuard,
                           LoginCaptchaService captchaService,
                           QqMailVerificationService mailVerificationService) {
         this.accountService = accountService;
         this.userService = userService;
+        this.rbacService = rbacService;
         this.jwtService = jwtService;
         this.loginGuard = loginGuard;
         this.captchaService = captchaService;
@@ -114,6 +119,12 @@ public class AuthController {
         Integer accountId = AuthContext.requireUser().getId();
         accountService.changePassword(accountId, value(request, "oldPassword"), value(request, "newPassword"));
         return ApiResponse.ok(null);
+    }
+
+    @GetMapping("/permissions")
+    public ApiResponse<Map<String, Object>> permissions() {
+        AuthPrincipal principal = AuthContext.requireAdmin();
+        return ApiResponse.ok(rbacService.getAccountPermissions(principal.getId()));
     }
 
     private ApiResponse<Map<String, Object>> loginResponse(Account account) {

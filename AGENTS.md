@@ -85,7 +85,7 @@
     │   │   ├── app/{agent,agent_store,tools,store,security,retrieval,deepseek,metrics,nacos,importer,schemas,config}.py
     │   │   ├── app/{markdown_knowledge,ingestion,vector_store,celery_app,tasks}.py
     │   │   └── requirements.txt / Dockerfile / start.sh / .dockerignore
-    │   ├── mysql/init/              # 000-005 SQL（含 user_account 统一账户表）
+    │   ├── mysql/init/              # 000-007 SQL（含 user_account 统一账户表、RBAC 权限表）
     │   ├── nginx/templates/         # 生产 Nginx 模板 default.conf.template
     │   ├── scripts/                  # 运维 Python 脚本（见第 6 节）
     │   ├── docs/                     # 4 篇运维文档
@@ -264,6 +264,7 @@ python scripts\legacy_print_compat_audit.py <gateway-or-nginx-log>   # 收紧旧
   - `POST /api/auth/login`、`/api/auth/register`、`/api/auth/email/send`、`/api/auth/password/reset`
   - `GET /api/service/**`、`/api/store/active`、`/api/public-files/**`
 - 权限分级：`requireUser()` / `requireAdmin()` / `requireSuperAdmin()`（见 `AuthContext`）。
+- RBAC 权限点（管理端专属）：`AuthContext.requirePermission("print:order:update")` 按权限标识校验；权限集合随 `AuthInterceptor` 既有的一次查库装载（`v_account_perms`），`role_key=superadmin` 代码级直通；管理端角色变更双写 `sys_user_role` + `user_account.role`。
 
 ### 7.6 安全要求
 
@@ -334,6 +335,10 @@ python scripts\legacy_print_compat_audit.py <gateway-or-nginx-log>   # 收紧旧
 | `order_info` | 订单：含结构化打印参数 `copies / page_count / duplex / color_mode / paper_size` 和模拟 `total_price` |
 | `store` | 门店 |
 | `service_item` | 服务项目 |
+| `sys_role` | RBAC 角色表：role_key/data_scope(ALL/STORE/SELF)/builtin/status |
+| `sys_menu` | RBAC 菜单权限表：M/C/F 三层、perms 权限标识、path/component |
+| `sys_user_role` / `sys_role_menu` | 账户↔角色、角色↔权限点关联 |
+| `v_account_roles` / `v_account_perms`（视图） | 账户→角色标识 / 账户→权限标识集合 |
 | `jw_accounts`（schedule_db） | 教务账号：`jw_password` AES-GCM 密文 |
 | `course_schedules`（schedule_db） | 课表 |
 | `knowledge_categories / knowledge_items / chat_logs`（chatbot_db） | 客服知识库 + 对话日志 |
@@ -350,7 +355,9 @@ mysql/init/
 ├── 002_schedule_schema.sql      # schedule_db
 ├── 003_chat_schema.sql          # chatbot_db（含 print_shop 业务用户授权）
 ├── 004_unified_user_account.sql # 创建 user_account，迁移旧 user/admin 数据，DROP 旧表
-└── 005_qq_email_identity.sql   # 补齐 email_hash 字段和唯一索引
+├── 005_qq_email_identity.sql   # 补齐 email_hash 字段和唯一索引
+├── 006_drop_jw_username.sql    # schedule_db 移除 jw_accounts.jw_username 列
+└── 007_rbac_schema.sql         # RBAC 四表两视图 + 内置角色/菜单/授权种子 + 存量账户角色回填
 ```
 
 > 004 会 DROP 旧 `user` 和 `admin` 表。Java 侧 `UserMapper` / `AdminMapper` / `AccountMapper` 都映射到 `user_account`，按 `account_type` 区分。
@@ -363,6 +370,8 @@ mysql/init/
 ## 9. 当前进展
 
 ### 9.1 已完成
+
+- **RBAC 权限体系（Phase 1-3 已落地，2026-09-06）**：print-service 权限内核（AuthInterceptor 装载 perms + `requirePermission` 替换三档硬编码，管理员/订单/门店/服务/用户共 22 处检查点权限点化）、`GET /api/auth/permissions` 下发 roles/perms/menus、管理员注册/更新/删除与用户注册双写 RBAC、chat-service 17 个管理端接口换成 `chat:knowledge:*` 权限点（跨库查 `print_shop.v_account_perms`，库不可用时 fail-closed 503）、前端 permission store + 路由守卫按 `meta.permission` 拦截 + Layout 菜单按权限渲染 + `v-permission` 按钮级指令 + AdminList localStorage 硬判断收口。方案见 `doc/RBAC权限体系改造方案.md`。
 
 - **百度 OCR 图片转文档**：print-service 新增 `/api/ocr/convert`、受保护下载和 `/api/ocr/status`；用户端 `/client/ocr`、管理端 `/ocr` 已接入。当前仅支持单张 JPG/PNG/BMP，使用 `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY`，未配置密钥时接口返回 503。详见 `打印\backend\docs\baidu-ocr-image-to-document.md`。
 
@@ -399,6 +408,9 @@ mysql/init/
 - 真实人脸样本生成证件照链路复测（本地只压了换底色）
 - 旧 `/api/**` 兼容路由收紧（先跑 `legacy_print_compat_audit.py` 审计日志）
 - 小程序正式发布（已弃 wx.login，发布流程需重新走 QQ 邮箱注册）
+- RBAC Phase 4：登录入口收口（`/api/auth/login` 扩展双类型登录 → 管理端切 `/api/print/auth/login` → 三端联调通过后注释 `/api/admin/login` 并删 Gateway/AuthInterceptor 白名单，见方案第 6.3/7 节）
+- RBAC Phase 5：数据权限落地（operator↔门店绑定 + 订单列表/查询按 `sys_role.data_scope=STORE` 过滤）
+- RBAC 注意：若未来权限点大幅增长（当前 25 个，GROUP_CONCAT 默认上限 1024 字节），需调大 `group_concat_max_len`
 - 同步更新 `智慧打印平台-开发计划书.md` 到 V1.33+ 和 `当前工作完成清单.md`
 
 ### 9.4 已知技术债
@@ -408,6 +420,7 @@ mysql/init/
 - `OrderInfoController` 所有方法返回裸类型，无 `ApiResponse` 包装。
 - 管理员登录两套入口并存（`/api/admin/login` 与 `/api/auth/login`），建议收口到一套。
 - `AuthInterceptor` 仍把 `/api/admin/login` 当公开路径，`/api/auth/login` 也是；要确认是否冗余。
+- RBAC 后保留 `requireAdmin` 的接口（属预期，无对应权限点）：文件上传/删除/门店图片（FileInfoController）、`/api/ocr/status`（OcrController）、管理员自助改密（AdminController.changePassword）。
 - `当前工作完成清单.md` 篇幅已超 440 行，建议按里程碑分档归档，主文档只保留最新一轮。
 
 ## 10. 关键文档索引

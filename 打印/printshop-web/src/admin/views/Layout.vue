@@ -149,11 +149,13 @@ import {
 } from '@ant-design/icons-vue'
 import { adminApi } from '@/api'
 import { usePreferenceStore } from '@/stores/preference'
+import { usePermissionStore } from '@/stores/permission'
 import logoUrl from '@/assets/logo.svg'
 
 const router = useRouter()
 const route = useRoute()
 const preferenceStore = usePreferenceStore()
+const permissionStore = usePermissionStore()
 const username = ref(localStorage.getItem('admin_user') || 'Admin')
 const adminRole = ref(localStorage.getItem('admin_role') || 'admin')
 const collapsed = ref(false)
@@ -169,32 +171,39 @@ const visitedTabs = ref([{ path: '/dashboard', title: '工作台' }])
 const passwordForm = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' })
 
 const icon = component => () => h(component)
-const menuItems = [
-  { key: '/dashboard', icon: icon(DashboardOutlined), label: '工作台' },
-  {
-    key: 'print-business', icon: icon(ShopOutlined), label: '打印业务', children: [
-      { key: '/orders', icon: icon(FileTextOutlined), label: '订单管理' },
-      { key: '/services', icon: icon(AppstoreOutlined), label: '服务管理' },
-      { key: '/stores', icon: icon(EnvironmentOutlined), label: '门店管理' }
-    ]
-  },
-  {
-    key: 'extension-services', icon: icon(AppstoreOutlined), label: '拓展功能', children: [
-      { key: '/photo', icon: icon(CameraOutlined), label: 'AI 证件照' },
-      { key: '/schedule', icon: icon(ScheduleOutlined), label: '课表查询' },
-      { key: '/ocr', icon: icon(FileWordOutlined), label: '图片转文档' }
-    ]
-  },
-  { key: '/chat', icon: icon(MessageOutlined), label: '智能客服' },
-  {
-    key: 'system-manage', icon: icon(SafetyCertificateOutlined), label: '系统管理', children: [
-      { key: '/profile', icon: icon(UserOutlined), label: '个人中心' },
-      { key: '/users', icon: icon(TeamOutlined), label: '用户管理' },
-      { key: '/knowledge', icon: icon(CommentOutlined), label: '客服知识库' },
-      { key: '/admins', icon: icon(UserOutlined), label: '管理员管理' }
-    ]
-  }
-]
+const MENU_ITEMS = {
+  '/dashboard': { icon: DashboardOutlined, label: '工作台' },
+  '/orders': { icon: FileTextOutlined, label: '订单管理' },
+  '/services': { icon: AppstoreOutlined, label: '服务管理' },
+  '/stores': { icon: EnvironmentOutlined, label: '门店管理' },
+  '/photo': { icon: CameraOutlined, label: 'AI 证件照' },
+  '/schedule': { icon: ScheduleOutlined, label: '课表查询' },
+  '/ocr': { icon: FileWordOutlined, label: '图片转文档' },
+  '/chat': { icon: MessageOutlined, label: '智能客服' },
+  '/profile': { icon: UserOutlined, label: '个人中心' },
+  '/users': { icon: TeamOutlined, label: '用户管理' },
+  '/knowledge': { icon: CommentOutlined, label: '客服知识库' },
+  '/admins': { icon: UserOutlined, label: '管理员管理' }
+}
+const MENU_GROUPS = {
+  'print-business': { icon: ShopOutlined, label: '打印业务', items: ['/orders', '/services', '/stores'] },
+  'extension-services': { icon: AppstoreOutlined, label: '拓展功能', items: ['/photo', '/schedule', '/ocr'] },
+  'system-manage': { icon: SafetyCertificateOutlined, label: '系统管理', items: ['/profile', '/users', '/knowledge', '/admins'] }
+}
+
+const menuItem = path => ({ key: path, icon: icon(MENU_ITEMS[path].icon), label: MENU_ITEMS[path].label })
+const menuGroup = key => {
+  const meta = MENU_GROUPS[key]
+  const children = meta.items.filter(path => permissionStore.hasMenu(path)).map(menuItem)
+  return children.length ? { key, icon: icon(meta.icon), label: meta.label, children } : null
+}
+const menuItems = computed(() => [
+  permissionStore.hasMenu('/dashboard') ? menuItem('/dashboard') : null,
+  menuGroup('print-business'),
+  menuGroup('extension-services'),
+  permissionStore.hasMenu('/chat') ? menuItem('/chat') : null,
+  menuGroup('system-manage')
+].filter(Boolean))
 
 const pageTitle = computed(() => route.meta.title || '管理后台')
 const roleLabel = computed(() => ({ superadmin: '超级管理员', admin: '管理员', operator: '操作员' }[adminRole.value] || '管理员'))
@@ -261,6 +270,7 @@ const passwordRules = {
 
 const clearSession = () => {
   ['admin_token', 'admin_token_expires_at', 'admin_user', 'admin_id', 'admin_role'].forEach(key => localStorage.removeItem(key))
+  permissionStore.reset()
 }
 
 const submitPassword = async () => {

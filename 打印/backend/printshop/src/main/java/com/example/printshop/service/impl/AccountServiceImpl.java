@@ -3,6 +3,7 @@ package com.example.printshop.service.impl;
 import com.example.printshop.common.ApiException;
 import com.example.printshop.entity.Account;
 import com.example.printshop.mapper.AccountMapper;
+import com.example.printshop.mapper.RbacMapper;
 import com.example.printshop.security.FieldCryptoService;
 import com.example.printshop.security.QqEmailAddress;
 import com.example.printshop.service.AccountService;
@@ -13,11 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AccountServiceImpl implements AccountService {
     private final AccountMapper accountMapper;
+    private final RbacMapper rbacMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final FieldCryptoService cryptoService;
 
-    public AccountServiceImpl(AccountMapper accountMapper, BCryptPasswordEncoder passwordEncoder, FieldCryptoService cryptoService) {
+    public AccountServiceImpl(AccountMapper accountMapper, RbacMapper rbacMapper, BCryptPasswordEncoder passwordEncoder, FieldCryptoService cryptoService) {
         this.accountMapper = accountMapper;
+        this.rbacMapper = rbacMapper;
         this.passwordEncoder = passwordEncoder;
         this.cryptoService = cryptoService;
     }
@@ -44,6 +47,7 @@ public class AccountServiceImpl implements AccountService {
         account.setEmail(cryptoService.encryptNullable(normalized));
         account.setEmailHash(cryptoService.blindIndex(normalized));
         accountMapper.insertUser(account);
+        assignRole(account.getId(), account.getRole());
         return accountMapper.selectById(account.getId());
     }
 
@@ -95,11 +99,21 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account requireActive(Integer id) {
-        Account account = accountMapper.selectById(id);
+        Account account = accountMapper.selectWithPermsById(id);
         if (account == null || account.getStatus() == null || account.getStatus() != 1) {
             throw ApiException.unauthorized("account is unavailable");
         }
         return account;
+    }
+
+    private void assignRole(Integer accountId, String roleKey) {
+        if (accountId == null || roleKey == null || roleKey.isBlank()) {
+            return;
+        }
+        Integer roleId = rbacMapper.selectRoleIdByKey(roleKey);
+        if (roleId != null) {
+            rbacMapper.insertUserRole(accountId, roleId);
+        }
     }
 
     @Override
