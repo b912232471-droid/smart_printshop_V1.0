@@ -1,0 +1,76 @@
+﻿<glass-nav title="我的订单"></glass-nav>
+<view class="page-shell">
+  <view class="section-head motion-fade-up">
+    <text class="section-title">我的订单</text>
+    <text class="section-subtitle">进度、取件码、历史一目了然</text>
+  </view>
+
+  <!-- Search -->
+  <view class="glass-card search-card card-pressable motion-fade-up motion-delay-1">
+    <input
+      class="search-input"
+      placeholder="搜索订单号 / 服务名称"
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+    />
+    <text class="search-icon" wx:if="{{!searchKeyword}}">🔎</text>
+    <text class="clear-icon" wx:if="{{searchKeyword}}" bindtap="clearSearch">×</text>
+  </view>
+
+  <!-- Tabs -->
+  <scroll-view class="tab-row motion-fade-up motion-delay-2" scroll-x>
+    <view
+      class="tab-pill {{currentTab === index ? 'active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="index"
+      bindtap="switchTab"
+      data-index="{{index}}"
+    >
+      {{item}}
+    </view>
+  </scroll-view>
+
+  <!-- Orders -->
+  <view class="order-list">
+    <view
+      class="glass-card order-card card-pressable motion-fade-up"
+      wx:for="{{orders}}"
+      wx:key="id"
+      bindtap="goDetail"
+      data-id="{{item.id}}"
+      style="animation-delay: {{index * 70}}ms;"
+    >
+      <view class="row-top">
+        <view class="order-meta">
+          <text class="order-number">{{item.queueNumber}}</text>
+          <view class="status-badge {{statusClass[item.orderStatus]}}">
+            {{statusText[item.orderStatus]}}
+          </view>
+          <text class="fetch-code" wx:if="{{item.orderStatus >= 2 && item.fetchCode}}">取件码 {{item.fetchCode}}</text>
+        </view>
+        <text class="order-price">￥{{item.totalPrice}}</text>
+      </view>
+
+      <view class="row-middle">
+        <text class="service-name">{{item.serviceName || '打印服务'}}</text>
+        <text class="dot">·</text>
+        <text class="appoint">{{item.appointTime}}</text>
+      </view>
+
+      <view class="row-params" wx:if="{{item.printSummary}}">
+        <text>{{item.printSummary}}</text>
+      </view>
+
+      <view class="row-bottom">
+        <text class="time">下单 {{item.createTime}}</text>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{orders.length === 0}}">
+      <text class="empty-emoji">{{searchKeyword ? '🔎' : '📭'}}</text>
+      <text class="empty-text">{{searchKeyword ? '没有匹配的订单' : '暂时没有订单'}}</text>
+      <text class="empty-hint" wx:if="{{searchKeyword}}">换个关键词试试</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,119 @@
+name: print_shop
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: print_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-print_shop}
+      MYSQL_USER: ${MYSQL_USER:-print_shop}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    volumes:
+      - print_shop_mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=80
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - print_shop
+
+  nacos:
+    image: nacos/nacos-server:v2.5.1
+    container_name: print_nacos
+    environment:
+      MODE: standalone
+      NACOS_AUTH_ENABLE: "false"
+      PREFER_HOST_MODE: ip
+      JVM_XMS: 256m
+      JVM_XMX: 256m
+      JVM_XMN: 128m
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8848/nacos/v1/console/health/readiness | grep -Eq 'OK|UP'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - print_shop
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: print_redis
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - print_shop_redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      TZ: Asia/Shanghai
+    restart: unless-stopped
+    networks:
+      - print_shop
+
+  qdrant:
+    image: qdrant/qdrant:v1.15.4
+    container_name: print_qdrant
+    ports:
+      - "127.0.0.1:${QDRANT_PORT:-6333}:6333"
+    volumes:
+      - print_shop_qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ': >/dev/tcp/127.0.0.1/6333'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - print_shop
+
+  clamav:
+    image: clamav/clamav:stable
+    container_name: print_clamav
+    ports:
+      - "3310:3310"
+    volumes:
+      - print_shop_clamav_db:/var/lib/clamav
+    restart: unless-stopped
+    networks:
+      - print_shop
+
+volumes:
+  print_shop_mysql_data:
+    name: print_shop_mysql_data
+  print_shop_clamav_db:
+    name: print_shop_clamav_db
+  print_shop_redis_data:
+    name: print_shop_redis_data
+  print_shop_qdrant_data:
+    name: print_shop_qdrant_data
+
+networks:
+  print_shop:
+    name: print_shop
+    driver: bridge

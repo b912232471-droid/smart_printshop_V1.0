@@ -1,0 +1,30 @@
+<view class="login-page">
+  <view class="brand-band">
+    <text class="brand-name">智慧打印</text>
+    <text class="brand-sub">PRINT SERVICE</text>
+  </view>
+
+  <view class="auth-body">
+    <view class="mode-tabs">
+      <view class="mode-tab {{mode === 'login' ? 'active' : ''}}" data-mode="login" bindtap="setMode">登录</view>
+      <view class="mode-tab {{mode === 'register' ? 'active' : ''}}" data-mode="register" bindtap="setMode">注册</view>
+    </view>
+
+    <view class="form-field">
+      <text class="field-label">账号</text>
+      <input class="field-input" value="{{username}}" maxlength="50" placeholder="请输入账号" bindinput="onUsernameInput" />
+    </view>
+    <view wx:if="{{mode === 'register'}}" class="form-field">
+      <text class="field-label">昵称</text>
+      <input class="field-input" value="{{displayName}}" maxlength="64" placeholder="请输入昵称" bindinput="onDisplayNameInput" />
+    </view>
+    <view class="form-field">
+      <text class="field-label">密码</text>
+      <input class="field-input" value="{{password}}" password maxlength="72" placeholder="请输入密码" bindinput="onPasswordInput" confirm-type="done" bindconfirm="submit" />
+    </view>
+
+    <button class="submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">
+      {{mode === 'login' ? '登录' : '创建账号'}}
+    </button>
+  </view>
+</view>

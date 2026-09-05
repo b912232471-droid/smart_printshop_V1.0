@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.example.printshop.entity.User">
+        <id property="id" column="id"/>
+        <result property="username" column="display_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="registerTime" column="created_at"/>
+        <result property="lastLoginTime" column="last_login_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="UserResultMap">
+        SELECT * FROM user_account WHERE id = #{id} AND account_type = 'user'
+    </select>
+
+    <update id="update">
+        UPDATE user_account
+        SET display_name = #{username},
+            phone = #{phone},
+            avatar_url = #{avatarUrl}
+        WHERE id = #{id} AND account_type = 'user'
+    </update>
+
+    <delete id="delete">
+        DELETE FROM user_account WHERE id = #{id} AND account_type = 'user'
+    </delete>
+
+    <select id="selectAll" resultMap="UserResultMap">
+        SELECT * FROM user_account WHERE account_type = 'user'
+    </select>
+</mapper>

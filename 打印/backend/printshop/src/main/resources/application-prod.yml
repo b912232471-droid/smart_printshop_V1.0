@@ -1,0 +1,20 @@
+# Production profile for server deployment (https://www.guangxun.ltd behind Nginx).
+# Defaults mirror .env.example; every value stays overridable through the environment.
+printshop:
+  security:
+    require-https: ${PRINTSHOP_REQUIRE_HTTPS:true}
+    allowed-origins: "${PRINTSHOP_ALLOWED_ORIGINS:https://www.guangxun.ltd}"
+    trust-forwarded-headers: ${PRINTSHOP_TRUST_FORWARDED_HEADERS:false}
+    alert:
+      enabled: ${PRINTSHOP_SECURITY_ALERT_ENABLED:true}
+      webhook-url: ${PRINTSHOP_SECURITY_ALERT_WEBHOOK_URL:}
+    rate-limit:
+      enabled: ${PRINTSHOP_RATE_LIMIT_ENABLED:true}
+      requests: ${PRINTSHOP_RATE_LIMIT_REQUESTS:240}
+      window-seconds: ${PRINTSHOP_RATE_LIMIT_WINDOW_SECONDS:60}
+    virus-scan:
+      enabled: ${PRINTSHOP_VIRUS_SCAN_ENABLED:true}
+      host: ${PRINTSHOP_VIRUS_SCAN_HOST:clamav}
+      port: ${PRINTSHOP_VIRUS_SCAN_PORT:3310}
+      timeout-ms: ${PRINTSHOP_VIRUS_SCAN_TIMEOUT_MS:5000}
+      fail-closed: ${PRINTSHOP_VIRUS_SCAN_FAIL_CLOSED:true}

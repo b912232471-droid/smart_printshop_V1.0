@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "AI证件照",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "glass-nav": "/components/glass-nav/index"
+  }
+}

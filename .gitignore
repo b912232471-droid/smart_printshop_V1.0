@@ -1,0 +1,43 @@
+# Java / Maven
+**/target/
+**/.m2repo/
+
+# Node / Vite
+**/node_modules/
+**/dist/
+**/dist-ssr/
+
+# Python
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Runtime uploads and generated files
+**/files/
+**/data/files/
+**/data/chat-documents/
+**/data/models/
+**/mysql/data/
+**/nginx/certs/
+
+# Local configuration and secrets
+.env
+*.env
+*.local
+application-local.properties
+application-prod.properties
+
+# IDE / OS / AI tools
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+.claude/
+.playwright-cli/
+
+# Logs
+*.log
+run_output.txt
+compile_output.txt

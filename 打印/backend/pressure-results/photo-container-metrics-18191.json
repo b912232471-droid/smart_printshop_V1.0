@@ -1,0 +1,1 @@
+{"service":"photo-service","instanceId":"a3c753f2e873","uptimeSeconds":49.841,"requestsTotal":4,"statusCounts":{"200":4},"pathCounts":{"/health":1,"/change-background":3},"requestDurationSeconds":{"average":1.467501,"max":2.203837,"sum":5.870005}}

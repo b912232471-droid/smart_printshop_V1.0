@@ -1,0 +1,11 @@
+<view class="print-nav" style="height: {{navHeight}}px; padding-top: {{statusBarHeight}}px;">
+  <view class="nav-inner" style="height: {{navBodyHeight}}px;">
+    <view class="nav-side">
+      <view class="back-button" wx:if="{{canGoBack}}" bindtap="goBack"><text class="back-icon">‹</text></view>
+      <view class="brand-mark" wx:else><view class="brand-paper"></view></view>
+    </view>
+    <text class="nav-title">{{title}}</text>
+    <view class="nav-safe-space"></view>
+  </view>
+</view>
+<view class="nav-placeholder" style="height: {{navHeight}}px;"></view>

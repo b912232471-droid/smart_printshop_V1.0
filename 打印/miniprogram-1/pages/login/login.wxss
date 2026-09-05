@@ -1,0 +1,11 @@
+.login-page { min-height: 100vh; background: #f4f7f6; color: #18221f; }
+.brand-band { min-height: 360rpx; padding: calc(90rpx + env(safe-area-inset-top)) 46rpx 56rpx; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(150deg,#1a705d,#0e493d); color: #fff; border-radius: 0 0 52rpx 52rpx; box-shadow: 0 20rpx 50rpx rgba(16,76,64,.2); }
+.brand-name { font-size: 56rpx; font-weight: 750; }.brand-sub { margin-top: 13rpx; font-size: 19rpx; opacity: .62; }
+.auth-body { margin: -2rpx auto 0; padding: 42rpx 40rpx 80rpx; max-width: 720rpx; }
+.mode-tabs { height: 76rpx; margin-bottom: 38rpx; padding: 6rpx; display: grid; grid-template-columns: 1fr 1fr; border-radius: 24rpx; background: #e7ecea; }
+.mode-tab { display: flex; align-items: center; justify-content: center; border-radius: 19rpx; color: #7a8782; font-size: 26rpx; }
+.mode-tab.active { background: #fff; color: #18221f; font-weight: 700; box-shadow: 0 6rpx 18rpx rgba(25,48,41,.09); }
+.form-field { margin-bottom: 27rpx; }.field-label { display: block; margin: 0 0 11rpx 5rpx; color: #596660; font-size: 22rpx; font-weight: 600; }
+.field-input { height: 94rpx; padding: 0 25rpx; border-radius: 22rpx; background: #fff; box-shadow: 0 8rpx 26rpx rgba(25,48,41,.06); font-size: 27rpx; }
+.submit-btn { height: 96rpx; margin-top: 42rpx; display: flex; align-items: center; justify-content: center; border-radius: 24rpx; background: linear-gradient(135deg,#1b7a64,#105143); box-shadow: 0 14rpx 28rpx rgba(23,107,88,.2); color: #fff; font-size: 29rpx; font-weight: 700; }
+.submit-btn:active { transform: scale(.98); }.submit-btn[disabled] { background: #bdc7c3; box-shadow: none; }

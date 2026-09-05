@@ -1,0 +1,49 @@
+<glass-nav title="个人中心"></glass-nav>
+<view class="profile-page">
+  <view class="account-panel">
+    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/images/avatar.png'}}" mode="aspectFill"></image>
+      <view class="avatar-edit">+</view>
+    </button>
+    <view class="account-copy">
+      <view class="name-row" bindtap="editNickname">
+        <text class="user-name">{{userInfo.username || '设置昵称'}}</text><text class="edit-link">编辑</text>
+      </view>
+      <view class="phone-row" bindtap="editPhone">
+        <text>{{userInfo.phone || '绑定手机号'}}</text><text class="row-arrow">›</text>
+      </view>
+    </view>
+    <text class="account-id">ID {{userInfo.id || '--'}}</text>
+  </view>
+
+  <view class="profile-body">
+    <view class="section-line"><text>订单概览</text><text class="section-code">ORDERS</text></view>
+    <view class="stats-grid">
+      <view class="stat-item" bindtap="goOrders" data-tab="1"><text class="stat-num">{{orderStats.pending || 0}}</text><text class="stat-label">待处理</text></view>
+      <view class="stat-item" bindtap="goOrders" data-tab="2"><text class="stat-num">{{orderStats.processing || 0}}</text><text class="stat-label">打印中</text></view>
+      <view class="stat-item stat-highlight" bindtap="goOrders" data-tab="3"><text class="stat-num">{{orderStats.ready || 0}}</text><text class="stat-label">待取件</text></view>
+      <view class="stat-item" bindtap="goOrders" data-tab="4"><text class="stat-num">{{orderStats.completed || 0}}</text><text class="stat-label">已完成</text></view>
+    </view>
+
+    <view class="quick-actions">
+      <view class="quick-action" bindtap="goHistory"><text class="action-code">01</text><text class="action-name">全部订单</text><text>›</text></view>
+      <view class="quick-action" bindtap="goLocation"><text class="action-code">02</text><text class="action-name">附近网点</text><text>›</text></view>
+    </view>
+
+    <view class="section-line"><text>帮助与服务</text><text class="section-code">SUPPORT</text></view>
+    <view class="menu-list">
+      <view class="menu-item" bindtap="showRefund"><view class="menu-symbol">¥</view><view class="menu-copy"><text class="menu-title">订单退款</text><text class="menu-desc">待取订单在线申请</text></view><text class="menu-arrow">›</text></view>
+      <view class="menu-item" bindtap="showOnlineService"><view class="menu-symbol">AI</view><view class="menu-copy"><text class="menu-title">在线客服</text><text class="menu-desc">智能问答与人工支持</text></view><text class="menu-arrow">›</text></view>
+      <view class="menu-item" bindtap="callHotline"><view class="menu-symbol">TEL</view><view class="menu-copy"><text class="menu-title">热线电话</text><text class="menu-desc">400-778-1811</text></view><text class="menu-arrow">›</text></view>
+      <view class="menu-item" bindtap="showFeedback"><view class="menu-symbol">FB</view><view class="menu-copy"><text class="menu-title">建议反馈</text><text class="menu-desc">告诉我们哪里可以更好</text></view><text class="menu-arrow">›</text></view>
+      <view class="menu-item" bindtap="showSelfService"><view class="menu-symbol">24H</view><view class="menu-copy"><text class="menu-title">安装自助打印机</text><text class="menu-desc">无人值守打印方案</text></view><text class="menu-arrow">›</text></view>
+    </view>
+
+    <view class="section-line"><text>账户设置</text><text class="section-code">SETTINGS</text></view>
+    <view class="menu-list">
+      <view class="menu-item" bindtap="editPhone"><view class="menu-symbol">MOB</view><view class="menu-copy"><text class="menu-title">手机号</text><text class="menu-desc">{{userInfo.phone || '未绑定'}}</text></view><text class="menu-arrow">›</text></view>
+      <view class="menu-item" bindtap="openAdminPanel"><view class="menu-symbol">ADM</view><view class="menu-copy"><text class="menu-title">管理后台</text><text class="menu-desc">门店与管理员专用</text></view><text class="menu-arrow">›</text></view>
+      <view class="menu-item danger" bindtap="logout"><view class="menu-symbol">OUT</view><view class="menu-copy"><text class="menu-title">退出登录</text><text class="menu-desc">切换或重新登录账号</text></view><text class="menu-arrow">›</text></view>
+    </view>
+  </view>
+</view>

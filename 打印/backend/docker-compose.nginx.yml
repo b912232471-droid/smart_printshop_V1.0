@@ -1,0 +1,27 @@
+services:
+  print-service:
+    environment:
+      PRINTSHOP_TRUST_FORWARDED_HEADERS: "true"
+
+  gateway:
+    environment:
+      GATEWAY_TRUST_FORWARDED_HEADERS: "true"
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: printshop-nginx
+    environment:
+      NGINX_SERVER_NAME: ${NGINX_SERVER_NAME:?NGINX_SERVER_NAME is required}
+      NGINX_CLIENT_MAX_BODY_SIZE: ${NGINX_CLIENT_MAX_BODY_SIZE:-25m}
+      NGINX_CERTIFICATE: ${NGINX_CERTIFICATE:-/etc/nginx/certs/fullchain.pem}
+      NGINX_CERTIFICATE_KEY: ${NGINX_CERTIFICATE_KEY:-/etc/nginx/certs/privkey.pem}
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ${NGINX_CERT_DIR:-./nginx/certs}:/etc/nginx/certs:ro
+      - ../printshop-web/dist:/usr/share/nginx/html:ro
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    depends_on:
+      - gateway
+    restart: unless-stopped

@@ -1,0 +1,39 @@
+body.client-zone { overflow: auto; }
+body.admin-zone { overflow: hidden; }
+
+.portal-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.portal-switch button {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  color: #595959;
+  background: transparent;
+  text-align: left;
+}
+
+.portal-switch button.active {
+  border-color: #1677ff;
+  color: #1677ff;
+  background: #e6f4ff;
+}
+
+.portal-switch button svg { flex: 0 0 auto; font-size: 20px; }
+.portal-switch strong, .portal-switch small { display: block; }
+.portal-switch strong { font-size: 13px; }
+.portal-switch small { margin-top: 2px; color: #8c8c8c; font-size: 10px; }
+.dark .portal-switch button { border-color: #434343; color: rgba(255,255,255,.7); }
+.dark .portal-switch button.active { border-color: #1677ff; color: #69b1ff; background: rgba(22,119,255,.14); }
+
+@media (max-width: 480px) {
+  .portal-switch { grid-template-columns: 1fr; }
+}

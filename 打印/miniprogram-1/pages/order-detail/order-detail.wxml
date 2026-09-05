@@ -1,0 +1,92 @@
+﻿<glass-nav title="订单详情"></glass-nav>
+<view class="page-shell">
+  <view class="section-head motion-fade-up">
+    <text class="section-title">订单详情</text>
+    <text class="section-subtitle">状态、取件码、文件与费用</text>
+  </view>
+
+  <!-- Status -->
+  <view class="glass-card status-card card-pressable motion-fade-up">
+    <text class="status-emoji">{{['🔔', '⌛', '📦', '✅', '💔'][order.orderStatus] || '🔔'}}</text>
+    <text class="status-title">{{statusText[order.orderStatus]}}</text>
+    <text class="status-desc">{{statusDesc[order.orderStatus]}}</text>
+  </view>
+
+  <!-- Codes -->
+  <view class="glass-card code-card card-pressable motion-fade-up motion-delay-1" wx:if="{{order.orderStatus >= 2}}">
+    <view class="code-row">
+      <view>
+        <text class="code-label">排队号</text>
+        <text class="code-value">{{order.queueNumber}}</text>
+      </view>
+      <view class="divider"></view>
+      <view>
+        <text class="code-label">取件码</text>
+        <text class="code-value accent">{{order.fetchCode}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Info -->
+  <view class="glass-card info-card motion-fade-up motion-delay-2">
+    <text class="card-title">订单信息</text>
+    <view class="info-list">
+      <view class="info-row">
+        <text class="info-label">订单号</text>
+        <text class="info-value">{{order.queueNumber}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">服务</text>
+        <text class="info-value">{{order.serviceName || ('服务ID: ' + order.serviceId)}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.servicePrice}}">
+        <text class="info-label">单价</text>
+        <text class="info-value">￥{{order.servicePrice}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.printSummary}}">
+        <text class="info-label">打印参数</text>
+        <text class="info-value">{{order.printSummary}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.storeName}}">
+        <text class="info-label">门店</text>
+        <text class="info-value">{{order.storeName}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.storeAddress}}">
+        <text class="info-label">地址</text>
+        <text class="info-value">{{order.storeAddress}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">时间</text>
+        <text class="info-value">{{order.appointTime}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Files -->
+  <view class="glass-card files-card motion-fade-up motion-delay-2" wx:if="{{files.length > 0}}">
+    <text class="card-title">打印文件</text>
+    <view class="file-list">
+      <view class="file-item card-pressable" wx:for="{{files}}" wx:key="id" bindtap="previewFile" data-id="{{item.id}}" data-name="{{item.fileName}}">
+        <view class="file-info">
+          <text class="file-emoji">🗂️</text>
+          <text class="file-name">{{item.fileName}}</text>
+        </view>
+        <text class="file-preview">预览 ↗</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Total -->
+  <view class="glass-card total-card motion-fade-up motion-delay-3">
+    <view class="total-row">
+      <text class="total-label">模拟金额</text>
+      <text class="total-amount">￥{{order.totalPrice}}</text>
+    </view>
+  </view>
+
+  <!-- Actions -->
+  <view class="actions" wx:if="{{order.orderStatus < 3}}">
+    <button class="ghost" bindtap="contactService">联系客服</button>
+    <button class="primary" wx:if="{{order.orderStatus === 0}}" bindtap="cancelOrder">取消订单</button>
+  </view>
+</view>

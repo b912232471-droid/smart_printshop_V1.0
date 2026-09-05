@@ -1,0 +1,26 @@
+{
+  "baseUrl": "http://127.0.0.1:18080",
+  "baseUrls": [
+    "http://127.0.0.1:18080"
+  ],
+  "endpoint": "/api/photo/health",
+  "requests": 9,
+  "concurrency": 3,
+  "success": 9,
+  "failed": 0,
+  "statusCounts": {
+    "200": 9
+  },
+  "baseUrlCounts": {
+    "http://127.0.0.1:18080": 9
+  },
+  "elapsedSeconds": 0.278,
+  "requestsPerSecond": 32.36,
+  "latencySeconds": {
+    "min": 0.0077,
+    "avg": 0.0909,
+    "p95": 0.2345,
+    "p99": 0.2345,
+    "max": 0.2345
+  }
+}

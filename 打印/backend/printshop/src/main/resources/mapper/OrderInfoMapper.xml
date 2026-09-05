@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.OrderInfoMapper">
+
+    <resultMap id="OrderInfoResultMap" type="com.example.printshop.entity.OrderInfo">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="serviceId" column="service_id"/>
+        <result property="storeId" column="store_id"/>
+        <result property="fileId" column="file_id"/>
+        <result property="appointTime" column="appoint_time"/>
+        <result property="queueNumber" column="queue_number"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="copies" column="copies"/>
+        <result property="pageCount" column="page_count"/>
+        <result property="duplex" column="duplex"/>
+        <result property="colorMode" column="color_mode"/>
+        <result property="paperSize" column="paper_size"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="fetchCode" column="fetch_code"/>
+        <!-- 服务信息（联表查询） -->
+        <result property="serviceName" column="service_name"/>
+        <result property="servicePrice" column="service_price"/>
+        <result property="serviceDescription" column="service_description"/>
+        <!-- 用户信息（联表查询） -->
+        <result property="userName" column="user_name"/>
+        <result property="userPhone" column="user_phone"/>
+        <!-- 店铺信息（联表查询） -->
+        <result property="storeName" column="store_name"/>
+        <result property="storeAddress" column="store_address"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="OrderInfoResultMap">
+        SELECT 
+            o.*,
+            s.name as service_name,
+            s.price as service_price,
+            s.description as service_description,
+            u.display_name as user_name,
+            u.phone as user_phone,
+            st.short_name as store_name,
+            st.address as store_address
+        FROM order_info o
+        LEFT JOIN service_item s ON o.service_id = s.id
+        LEFT JOIN user_account u ON o.user_id = u.id AND u.account_type = 'user'
+        LEFT JOIN store st ON o.store_id = st.id
+        WHERE o.id = #{id}
+    </select>
+
+    <select id="selectByUserId" resultMap="OrderInfoResultMap">
+        SELECT 
+            o.*,
+            s.name as service_name,
+            s.price as service_price,
+            s.description as service_description,
+            u.display_name as user_name,
+            u.phone as user_phone,
+            st.short_name as store_name,
+            st.address as store_address
+        FROM order_info o
+        LEFT JOIN service_item s ON o.service_id = s.id
+        LEFT JOIN user_account u ON o.user_id = u.id AND u.account_type = 'user'
+        LEFT JOIN store st ON o.store_id = st.id
+        WHERE o.user_id = #{userId} 
+        ORDER BY o.create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_info(
+            user_id, service_id, store_id, file_id, appoint_time, queue_number, total_price,
+            copies, page_count, duplex, color_mode, paper_size, order_status, fetch_code
+        ) VALUES (
+                     #{userId}, #{serviceId}, #{storeId}, #{fileId}, #{appointTime}, #{queueNumber},
+                     #{totalPrice}, #{copies}, #{pageCount}, #{duplex}, #{colorMode}, #{paperSize},
+                     #{orderStatus}, #{fetchCode}
+                 )
+    </insert>
+
+    <update id="update">
+        UPDATE order_info
+        SET
+            order_status = #{orderStatus},
+            update_time = #{updateTime},
+            fetch_code = #{fetchCode}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM order_info WHERE id = #{id}
+    </delete>
+
+    <select id="selectByStatus" resultMap="OrderInfoResultMap">
+        SELECT 
+            o.*,
+            s.name as service_name,
+            s.price as service_price,
+            s.description as service_description,
+            u.display_name as user_name,
+            u.phone as user_phone,
+            st.short_name as store_name,
+            st.address as store_address
+        FROM order_info o
+        LEFT JOIN service_item s ON o.service_id = s.id
+        LEFT JOIN user_account u ON o.user_id = u.id AND u.account_type = 'user'
+        LEFT JOIN store st ON o.store_id = st.id
+        WHERE o.user_id = #{userId} AND o.order_status = #{status} 
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectAll" resultMap="OrderInfoResultMap">
+        SELECT 
+            o.*,
+            s.name as service_name,
+            s.price as service_price,
+            s.description as service_description,
+            u.display_name as user_name,
+            u.phone as user_phone,
+            st.short_name as store_name,
+            st.address as store_address
+        FROM order_info o
+        LEFT JOIN service_item s ON o.service_id = s.id
+        LEFT JOIN user_account u ON o.user_id = u.id AND u.account_type = 'user'
+        LEFT JOIN store st ON o.store_id = st.id
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectQueueCount" resultType="int">
+        <![CDATA[
+        SELECT COUNT(*) 
+        FROM order_info 
+        WHERE order_status IN (0, 1)
+        AND appoint_time <= DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+        ]]>
+    </select>
+
+    <select id="selectTodayOrderCount" resultType="int">
+        <![CDATA[
+        SELECT COUNT(*) 
+        FROM order_info 
+        WHERE DATE(create_time) = CURDATE()
+        ]]>
+    </select>
+</mapper>

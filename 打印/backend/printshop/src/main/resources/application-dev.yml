@@ -1,0 +1,17 @@
+# Daily development profile: relaxed security posture so local runs stay frictionless.
+# Security knobs stay env-overridable; docker-compose.dev.yml sets SPRING_PROFILES_ACTIVE=dev.
+printshop:
+  security:
+    require-https: false
+    allowed-origins: "${PRINTSHOP_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}"
+    alert:
+      enabled: false
+    rate-limit:
+      enabled: false
+    virus-scan:
+      enabled: false
+      host: ${PRINTSHOP_VIRUS_SCAN_HOST:clamav}
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

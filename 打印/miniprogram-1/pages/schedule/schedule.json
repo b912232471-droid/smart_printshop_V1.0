@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "教务课表",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "glass-nav": "/components/glass-nav/index"
+  }
+}

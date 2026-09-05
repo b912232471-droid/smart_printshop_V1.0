@@ -1,0 +1,159 @@
+server:
+  port: ${GATEWAY_PORT:8080}
+
+gateway:
+  security:
+    auth:
+      enabled: ${GATEWAY_AUTH_ENABLED:false}
+      jwt-secret: ${GATEWAY_JWT_SECRET:}
+    trust-forwarded-headers: ${GATEWAY_TRUST_FORWARDED_HEADERS:false}
+    request-log:
+      enabled: ${GATEWAY_REQUEST_LOG_ENABLED:true}
+    rate-limit:
+      enabled: ${GATEWAY_RATE_LIMIT_ENABLED:true}
+      requests: ${GATEWAY_RATE_LIMIT_REQUESTS:600}
+      window-seconds: ${GATEWAY_RATE_LIMIT_WINDOW_SECONDS:60}
+
+spring:
+  config:
+    import: "optional:file:../.env.local[.properties],optional:file:../.env.middleware.local[.properties]"
+  application:
+    name: printshop-gateway
+  cloud:
+    nacos:
+      discovery:
+        enabled: ${NACOS_ENABLED:false}
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        metadata:
+          version: ${GATEWAY_VERSION:1.0.0}
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            - SecureHeaders
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+          routes:
+            - id: print-service-plan-prefix
+              uri: ${PRINT_SERVICE_URI:http://localhost:8081}
+              predicates:
+                - Path=/api/print/**
+              filters:
+                - RewritePath=/api/print/?(?<segment>.*), /api/$\{segment}
+                - name: CircuitBreaker
+                  args:
+                    name: printServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/print-service
+              order: 1
+            - id: photo-service
+              uri: ${PHOTO_SERVICE_URI:http://localhost:8091}
+              predicates:
+                - Path=/api/photo/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: photoServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/photo-service
+              order: 10
+            - id: schedule-service
+              uri: ${SCHEDULE_SERVICE_URI:http://localhost:8092}
+              predicates:
+                - Path=/api/schedule/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: scheduleServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/schedule-service
+              order: 20
+            - id: chat-service
+              uri: ${CHAT_SERVICE_URI:http://localhost:8093}
+              predicates:
+                - Path=/api/chat/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: chatServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/chat-service
+              order: 30
+            - id: print-service-compat
+              uri: ${PRINT_SERVICE_URI:http://localhost:8081}
+              predicates:
+                - Path=${GATEWAY_PRINT_COMPAT_PATHS:/api/**}
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: printServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/print-service
+              order: 100
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origin-patterns: "${GATEWAY_ALLOWED_ORIGINS:http://localhost:*,https://www.guangxun.ltd}"
+                allowed-headers: "*"
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${GATEWAY_ACTUATOR_EXPOSURE:health,info}
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      printServiceCircuitBreaker:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${GATEWAY_PRINT_CB_SLIDING_WINDOW_SIZE:${GATEWAY_CB_SLIDING_WINDOW_SIZE:20}}
+        minimum-number-of-calls: ${GATEWAY_PRINT_CB_MINIMUM_CALLS:${GATEWAY_CB_MINIMUM_CALLS:10}}
+        failure-rate-threshold: ${GATEWAY_PRINT_CB_FAILURE_RATE_THRESHOLD:${GATEWAY_CB_FAILURE_RATE_THRESHOLD:50}}
+        wait-duration-in-open-state: ${GATEWAY_PRINT_CB_WAIT_DURATION:${GATEWAY_CB_WAIT_DURATION:30s}}
+        permitted-number-of-calls-in-half-open-state: ${GATEWAY_PRINT_CB_HALF_OPEN_CALLS:${GATEWAY_CB_HALF_OPEN_CALLS:3}}
+        automatic-transition-from-open-to-half-open-enabled: true
+      photoServiceCircuitBreaker:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${GATEWAY_PHOTO_CB_SLIDING_WINDOW_SIZE:${GATEWAY_CB_SLIDING_WINDOW_SIZE:20}}
+        minimum-number-of-calls: ${GATEWAY_PHOTO_CB_MINIMUM_CALLS:${GATEWAY_CB_MINIMUM_CALLS:10}}
+        failure-rate-threshold: ${GATEWAY_PHOTO_CB_FAILURE_RATE_THRESHOLD:${GATEWAY_CB_FAILURE_RATE_THRESHOLD:50}}
+        wait-duration-in-open-state: ${GATEWAY_PHOTO_CB_WAIT_DURATION:${GATEWAY_CB_WAIT_DURATION:30s}}
+        permitted-number-of-calls-in-half-open-state: ${GATEWAY_PHOTO_CB_HALF_OPEN_CALLS:${GATEWAY_CB_HALF_OPEN_CALLS:3}}
+        automatic-transition-from-open-to-half-open-enabled: true
+      scheduleServiceCircuitBreaker:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${GATEWAY_SCHEDULE_CB_SLIDING_WINDOW_SIZE:${GATEWAY_CB_SLIDING_WINDOW_SIZE:20}}
+        minimum-number-of-calls: ${GATEWAY_SCHEDULE_CB_MINIMUM_CALLS:${GATEWAY_CB_MINIMUM_CALLS:10}}
+        failure-rate-threshold: ${GATEWAY_SCHEDULE_CB_FAILURE_RATE_THRESHOLD:${GATEWAY_CB_FAILURE_RATE_THRESHOLD:50}}
+        wait-duration-in-open-state: ${GATEWAY_SCHEDULE_CB_WAIT_DURATION:${GATEWAY_CB_WAIT_DURATION:30s}}
+        permitted-number-of-calls-in-half-open-state: ${GATEWAY_SCHEDULE_CB_HALF_OPEN_CALLS:${GATEWAY_CB_HALF_OPEN_CALLS:3}}
+        automatic-transition-from-open-to-half-open-enabled: true
+      chatServiceCircuitBreaker:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${GATEWAY_CHAT_CB_SLIDING_WINDOW_SIZE:${GATEWAY_CB_SLIDING_WINDOW_SIZE:20}}
+        minimum-number-of-calls: ${GATEWAY_CHAT_CB_MINIMUM_CALLS:${GATEWAY_CB_MINIMUM_CALLS:10}}
+        failure-rate-threshold: ${GATEWAY_CHAT_CB_FAILURE_RATE_THRESHOLD:${GATEWAY_CB_FAILURE_RATE_THRESHOLD:50}}
+        wait-duration-in-open-state: ${GATEWAY_CHAT_CB_WAIT_DURATION:${GATEWAY_CB_WAIT_DURATION:30s}}
+        permitted-number-of-calls-in-half-open-state: ${GATEWAY_CHAT_CB_HALF_OPEN_CALLS:${GATEWAY_CB_HALF_OPEN_CALLS:3}}
+        automatic-transition-from-open-to-half-open-enabled: true
+  timelimiter:
+    instances:
+      printServiceCircuitBreaker:
+        timeout-duration: ${GATEWAY_PRINT_CB_TIMEOUT:${GATEWAY_CB_TIMEOUT:10s}}
+        cancel-running-future: true
+      photoServiceCircuitBreaker:
+        timeout-duration: ${GATEWAY_PHOTO_CB_TIMEOUT:${GATEWAY_CB_TIMEOUT:10s}}
+        cancel-running-future: true
+      scheduleServiceCircuitBreaker:
+        timeout-duration: ${GATEWAY_SCHEDULE_CB_TIMEOUT:${GATEWAY_CB_TIMEOUT:10s}}
+        cancel-running-future: true
+      chatServiceCircuitBreaker:
+        timeout-duration: ${GATEWAY_CHAT_CB_TIMEOUT:90s}
+        cancel-running-future: true

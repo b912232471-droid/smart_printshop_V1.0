@@ -1,0 +1,101 @@
+﻿<glass-nav title="附近网点"></glass-nav>
+<view class="location-page">
+  <!-- 地图容器 -->
+  <view class="map-container">
+    <map 
+      id="storeMap"
+      class="store-map"
+      style="width: 100%; height: 100%;"
+      latitude="{{latitude}}"
+      longitude="{{longitude}}"
+      scale="{{scale}}"
+      markers="{{markers}}"
+      show-location
+      bindregionchange="onRegionChange"
+      bindmarkertap="onMarkerTap"
+    ></map>
+    <!-- 重新定位按钮 -->
+    <view class="relocate-btn" bindtap="relocate">
+      <text class="relocate-text">📍</text>
+    </view>
+  </view>
+
+  <!-- 门店列表 -->
+  <view class="stores-list">
+    <!-- 搜索框 -->
+    <view class="search-box">
+      <input 
+        class="search-input" 
+        placeholder="输入设备号、地址" 
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+      />
+      <text class="search-icon">🔎</text>
+    </view>
+
+    <view class="list-header">
+      <text class="list-title">附近网点</text>
+      <text class="list-count">共{{filteredStores.length}}家</text>
+    </view>
+
+    <scroll-view scroll-y class="scroll-list">
+      <view 
+        class="brutal-card store-card {{selectedStoreId === item.id ? 'active' : ''}}"
+        wx:for="{{filteredStores}}"
+        wx:key="id"
+        bindtap="selectStore"
+        data-id="{{item.id}}"
+      >
+        <!-- 门店图片 -->
+        <view class="store-image-wrapper" bindtap="previewStoreImage" data-url="{{item.imageUrl}}" catchtap="previewStoreImage">
+          <image 
+            class="store-image" 
+            src="{{item.imageUrl || '/images/store-default.jpg'}}" 
+            mode="aspectFill"
+            binderror="onImageError"
+            bindload="onImageLoad"
+            data-store="{{item.shortName}}"
+            data-url="{{item.imageUrl}}"
+          ></image>
+        </view>
+        
+        <!-- 门店信息 -->
+        <view class="store-info">
+          <!-- 设备号和店名 -->
+          <view class="store-title-row">
+            <text class="store-device-code">[{{item.deviceCode}}]</text>
+            <text class="store-name">{{item.shortName}}</text>
+            <text class="store-distance">距离 {{item.distance}}米</text>
+          </view>
+
+          <!-- 地址 -->
+          <view class="store-address">{{item.address}}</view>
+
+          <!-- 底部信息 -->
+          <view class="store-bottom">
+            <!-- 服务标签 -->
+            <view class="service-tags">
+              <text class="service-tag" wx:for="{{item.services}}" wx:key="*this" wx:for-item="service">{{service}}</text>
+            </view>
+            
+            <!-- 操作按钮 -->
+            <view class="store-actions">
+              <view class="action-btn" bindtap="callPhone" data-phone="{{item.phone}}" catchtap="callPhone">
+                <text class="action-icon">📞</text>
+                <text class="action-label">电话</text>
+              </view>
+              <view class="action-btn action-btn-primary" bindtap="navigateToStore" data-id="{{item.id}}" catchtap="navigateToStore">
+                <text class="action-icon">🧭</text>
+                <text class="action-label">导航</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部占位 -->
+      <view class="bottom-placeholder"></view>
+    </scroll-view>
+  </view>
+</view>

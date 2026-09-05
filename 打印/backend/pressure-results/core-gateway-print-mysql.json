@@ -1,0 +1,27 @@
+{
+  "scenario": "core-gateway-print-mysql",
+  "timestamp": "2026-07-05T15:28:22+08:00",
+  "components": {
+    "mysqlImage": "mysql:8.0",
+    "nacosImage": "nacos/nacos-server:v2.5.1",
+    "printServiceImage": "backend-print-service:local",
+    "gatewayImage": "backend-gateway:latest"
+  },
+  "request": {
+    "method": "GET",
+    "url": "http://127.0.0.1:18080/api/print/service/",
+    "route": "/api/print/service/ -> Gateway RewritePath -> /api/service/ -> lb://print-service",
+    "auth": "public route"
+  },
+  "result": {
+    "success": true,
+    "statusCode": 200,
+    "serviceItemCount": 8,
+    "nacosPrintServiceHealthyHosts": 1
+  },
+  "notes": [
+    "Temporary MySQL used init scripts from 打印/backend/mysql/init without writing mysql/data.",
+    "print-service registered in Nacos as DEFAULT_GROUP@@print-service.",
+    "Gateway resolved lb://print-service through Nacos and returned initialized service items from MySQL."
+  ]
+}

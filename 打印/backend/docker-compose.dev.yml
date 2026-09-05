@@ -1,0 +1,35 @@
+services:
+  print-service:
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+
+  gateway:
+    environment:
+      GATEWAY_RATE_LIMIT_ENABLED: "false"
+      PHOTO_SERVICE_URI: "lb://photo-service"
+      SCHEDULE_SERVICE_URI: "lb://schedule-service"
+      CHAT_SERVICE_URI: "lb://chat-service"
+    ports:
+      - "${GATEWAY_DEV_PORT:-8080}:8080"
+
+  schedule-service:
+    environment:
+      SCHEDULE_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${SCHEDULE_DATABASE:-schedule_db}?serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
+      SCHEDULE_DATASOURCE_USERNAME: "${MYSQL_USER:-print_shop}"
+      SCHEDULE_DATASOURCE_PASSWORD: "${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}"
+      SCHEDULE_SYNC_MOCK_ENABLED: "${SCHEDULE_SYNC_MOCK_ENABLED:-true}"
+    ports:
+      - "${SCHEDULE_DEV_PORT:-8092}:8092"
+
+  photo-service:
+    environment:
+      IMAGE_API_KEY: "${LOCAL_DEEPSEEK_API_KEY:-}"
+    ports:
+      - "${PHOTO_DEV_PORT:-8091}:8091"
+
+  chat-service:
+    environment:
+      CHAT_DATABASE_URL: "mysql+pymysql://${MYSQL_USER:-print_shop}:${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}@mysql:3306/${CHAT_DATABASE:-chatbot_db}?charset=utf8mb4"
+      DEEPSEEK_API_KEY: "${LOCAL_DEEPSEEK_API_KEY:-}"
+    ports:
+      - "${CHAT_DEV_PORT:-8093}:8093"

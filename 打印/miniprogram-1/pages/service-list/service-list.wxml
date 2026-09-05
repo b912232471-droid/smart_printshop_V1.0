@@ -1,0 +1,31 @@
+<glass-nav title="选择服务"></glass-nav>
+<view class="page-shell">
+  <view class="category-head motion-fade-up">
+    <text class="category-index">SERVICE MENU</text>
+    <text class="category-title">{{categoryName}}</text>
+    <text class="category-desc">选择具体规格后进入预约</text>
+  </view>
+
+  <view class="service-list">
+    <view
+      class="service-row card-pressable motion-fade-up"
+      wx:for="{{services}}"
+      wx:key="id"
+      bindtap="goBooking"
+      data-service="{{item}}"
+      style="animation-delay: {{index * 40}}ms;"
+    >
+      <text class="service-no">{{index < 9 ? '0' + (index + 1) : index + 1}}</text>
+      <view class="service-copy">
+        <text class="service-name">{{item.name}}</text>
+        <text class="service-desc">{{item.description || '标准打印服务'}}</text>
+      </view>
+      <view class="service-price"><text class="currency">¥</text>{{item.price}}</view>
+      <text class="service-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{services.length === 0}}">
+    <text class="empty-text">该分类暂未配置服务</text>
+  </view>
+</view>

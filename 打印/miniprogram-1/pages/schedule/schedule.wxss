@@ -1,0 +1,53 @@
+.schedule-page { padding-bottom: calc(100rpx + env(safe-area-inset-bottom)); }
+.schedule-hero, .account-card, .bind-card, .state-card, .term-card, .course-card, .empty-card, .error-card { margin-bottom: 18rpx; }
+.schedule-hero { padding: 28rpx; background: #ff8a3d; color: #fff; }
+.hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20rpx; }
+.hero-title { display: block; font-size: 39rpx; font-weight: 720; }
+.hero-sub { display: block; margin-top: 10rpx; max-width: 500rpx; font-size: 21rpx; line-height: 1.5; color: #ffe1d1; }
+.hero-badge { flex: 0 0 auto; padding: 8rpx 11rpx; font-size: 16rpx; }
+.account-card, .bind-card, .term-card, .course-card, .state-card, .empty-card, .error-card { padding: 24rpx; }
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20rpx; padding-bottom: 14rpx; }
+.card-title { display: block; font-size: 27rpx; font-weight: 700; }
+.card-desc { display: block; margin-top: 6rpx; font-size: 18rpx; line-height: 1.45; color: #7a7f78; }
+.account-grid { display: flex; flex-direction: column; }
+.account-item { min-height: 76rpx; display: grid; grid-template-columns: 150rpx minmax(0,1fr); align-items: center; gap: 14rpx; }
+.account-label { font-size: 20rpx; color: #777c75; }
+.account-value { min-width: 0; font-size: 23rpx; text-align: right; word-break: break-all; }
+.field { margin-top: 20rpx; }
+.field-compact { margin-top: 12rpx; }
+.field-label { display: block; margin-bottom: 9rpx; font-size: 22rpx; font-weight: 650; }
+.field-input, .picker-input { width: 100%; min-height: 78rpx; padding: 0 15rpx; display: flex; align-items: center; background: #f7f8f4; font-size: 22rpx; }
+.action-row { margin-top: 20rpx; display: grid; grid-template-columns: 156rpx minmax(0,1fr); gap: 10rpx; }
+.text-btn { height: 58rpx; padding: 0 14rpx; display: flex; align-items: center; justify-content: center; font-size: 19rpx; }
+.state-title { display: block; font-size: 27rpx; font-weight: 700; }
+.state-text { display: block; margin-top: 8rpx; font-size: 21rpx; line-height: 1.5; color: #6f746d; }
+.term-tabs { margin-top: 18rpx; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+.term-tab { min-height: 64rpx; padding: 0 8rpx; display: flex; align-items: center; justify-content: center; font-size: 19rpx; text-align: center; }
+.term-tab.active { background: #ff6b57; color: #fff; }
+.term-input-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10rpx; }
+.schedule-page .section-head { margin-top: 34rpx; }
+.course-list { display: flex; flex-direction: column; }
+.course-main { padding: 18rpx 0; }
+.course-name { display: block; font-size: 26rpx; font-weight: 680; }
+.course-meta { display: block; margin-top: 8rpx; font-size: 20rpx; color: #70756e; }
+.course-foot { margin-top: 9rpx; display: flex; align-items: center; gap: 8rpx; }
+.course-term, .meta-pill { padding: 5rpx 8rpx; background: #edf0e9; font-size: 17rpx; color: #60655f; }
+.empty-card { min-height: 220rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.empty-title { font-size: 27rpx; font-weight: 700; }
+.empty-desc { margin-top: 9rpx; font-size: 20rpx; color: #777c75; }
+.error-card { background: #fff0ed; }
+.error-text { font-size: 21rpx; color: #9a332a; }
+
+/* UI refresh: soft grouping replaces the former outlined layout. */
+.schedule-hero { border-radius: 30rpx; background: linear-gradient(145deg,#ef854c,#ca5d2d); box-shadow: 0 16rpx 38rpx rgba(202,93,45,.17); }
+.hero-badge,.meta-pill,.course-term { border: 0; border-radius: 17rpx; }
+.schedule-card,.account-card,.term-card,.course-card,.empty-card,.error-card { border: 0; border-radius: 26rpx; box-shadow: 0 9rpx 28rpx rgba(25,48,41,.06); }
+.card-head { border: 0; margin-bottom: 10rpx; }
+.account-item,.course-main { border: 0; }
+.account-item + .account-item,.course-main + .course-main { box-shadow: inset 0 2rpx 0 #edf1ef; }
+.field-input,.picker-input { border: 0; border-radius: 20rpx; background: #f0f4f2; }
+.text-btn { border: 0; border-radius: 17rpx; background: #e3f0eb; color: #176b58; }
+.term-tabs { padding: 6rpx; border: 0; border-radius: 22rpx; background: #edf2f0; }
+.term-tab { border: 0; border-radius: 17rpx; }
+.term-tab.active { background: #176b58; box-shadow: 0 6rpx 18rpx rgba(23,107,88,.18); }
+.error-card { background: #fdecea; }

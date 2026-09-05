@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "服务列表",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#fdfdfc",
+  "usingComponents": {
+    "glass-nav": "/components/glass-nav/index"
+  }
+}

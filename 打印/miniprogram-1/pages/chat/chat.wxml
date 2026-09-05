@@ -1,0 +1,53 @@
+<glass-nav title="智能客服"></glass-nav>
+<view class="chat-page">
+  <view class="chat-intro motion-fade-up">
+    <view class="assistant-avatar"><text>AI</text><view class="online-dot {{serviceEnabled ? '' : 'offline'}}"></view></view>
+    <view class="intro-copy">
+      <text class="intro-title">智慧打印助手</text>
+      <text class="intro-sub">{{serviceStatusText}}</text>
+    </view>
+    <button class="history-btn" bindtap="openHistory">历史</button>
+    <button class="new-chat-btn" bindtap="newConversation">新会话</button>
+    <button class="hotline-btn" bindtap="callHotline"><text class="phone-icon">☎</text><text>人工</text></button>
+  </view>
+
+  <scroll-view class="quick-scroll motion-fade-up motion-delay-1" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="quick-row">
+      <view class="quick-chip" wx:for="{{quickQuestions}}" wx:key="*this" bindtap="onQuickQuestion" data-question="{{item}}">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <scroll-view class="message-scroll" scroll-y enhanced show-scrollbar="{{false}}" scroll-with-animation scroll-into-view="{{scrollToMessage}}">
+    <view class="message-list">
+      <view id="{{item.id}}" class="message-row {{item.role === 'user' ? 'from-user' : 'from-assistant'}}" wx:for="{{messages}}" wx:key="id">
+        <view class="message-avatar" wx:if="{{item.role !== 'user'}}">AI</view>
+        <view class="message-body">
+          <view class="message-bubble">
+            <text class="message-text">{{item.text}}</text>
+          </view>
+          <view class="source-list" wx:if="{{item.sources && item.sources.length}}">
+            <text class="source-label">参考来源</text>
+            <text class="source-item" wx:for="{{item.sources}}" wx:key="id">{{item.category}}</text>
+          </view>
+          <view class="tool-list" wx:if="{{item.toolCalls && item.toolCalls.length}}">
+            <view class="tool-row" wx:for="{{item.toolCalls}}" wx:key="id"><text>{{item.summary || item.tool}}</text></view>
+          </view>
+          <view class="feedback-row" wx:if="{{item.role === 'assistant' && item.messageId}}">
+            <button class="feedback-btn {{item.feedback === 1 ? 'selected' : ''}}" data-id="{{item.messageId}}" data-rating="1" bindtap="sendFeedback">有帮助</button>
+            <button class="feedback-btn {{item.feedback === -1 ? 'selected' : ''}}" data-id="{{item.messageId}}" data-rating="-1" bindtap="sendFeedback">没帮助</button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="input-dock">
+    <view class="input-bar">
+      <input class="chat-input" disabled="{{!serviceEnabled}}" placeholder="{{serviceEnabled ? '输入你想了解的问题' : '服务暂未开放'}}" placeholder-class="input-placeholder" value="{{inputValue}}" confirm-type="send" bindinput="onInput" bindconfirm="sendMessage" />
+      <button wx:if="{{sending}}" class="send-btn stop-btn" bindtap="stopGeneration"><text>■</text></button>
+      <button wx:else class="send-btn" disabled="{{!serviceEnabled}}" bindtap="sendMessage"><text>↑</text></button>
+    </view>
+  </view>
+</view>

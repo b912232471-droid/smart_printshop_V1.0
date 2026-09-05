@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.ServiceItemMapper">
+    <resultMap id="ServiceItemResultMap" type="com.example.printshop.entity.ServiceItem">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="category" column="category" />
+        <result property="price" column="price" />
+        <result property="description" column="description" />
+    </resultMap>
+    <select id="selectById" resultMap="ServiceItemResultMap">
+        SELECT * FROM service_item WHERE id = #{id}
+    </select>
+    <select id="selectAll" resultMap="ServiceItemResultMap">
+        SELECT * FROM service_item
+    </select>
+    <select id="selectByCategory" resultMap="ServiceItemResultMap">
+        SELECT * FROM service_item WHERE category = #{category}
+    </select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO service_item(name, category, price, description)
+        VALUES (#{name}, #{category}, #{price}, #{description})
+    </insert>
+    <update id="update">
+        UPDATE service_item SET name=#{name}, category=#{category}, price=#{price}, description=#{description}
+        WHERE id=#{id}
+    </update>
+    <delete id="delete">
+        DELETE FROM service_item WHERE id=#{id}
+    </delete>
+</mapper>

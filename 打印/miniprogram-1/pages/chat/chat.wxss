@@ -1,0 +1,43 @@
+page { height: 100%; display: flex; flex-direction: column; overflow: hidden; background: #f4f7f6; }
+.chat-page { min-height: 0; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-intro { margin: 22rpx 26rpx 16rpx; padding: 22rpx; display: flex; align-items: center; gap: 18rpx; background: #fff; border-radius: 26rpx; box-shadow: 0 10rpx 34rpx rgba(25,48,41,.07); }
+.assistant-avatar { position: relative; width: 76rpx; height: 76rpx; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 24rpx; background: linear-gradient(145deg,#1d7f68,#105143); color: #fff; font-size: 25rpx; font-weight: 750; }
+.online-dot { position: absolute; right: -2rpx; bottom: -2rpx; width: 20rpx; height: 20rpx; border: 5rpx solid #fff; border-radius: 50%; background: #42bf83; }
+.online-dot.offline { background: #aeb8b4; }
+.intro-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 7rpx; }
+.intro-title { font-size: 29rpx; font-weight: 700; color: #18221f; }
+.intro-sub { font-size: 20rpx; color: #82908a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hotline-btn { min-width: 108rpx; height: 62rpx; padding: 0 18rpx; display: flex; align-items: center; justify-content: center; gap: 7rpx; border-radius: 31rpx; background: #edf4f1; color: #176b58; font-size: 21rpx; font-weight: 650; }
+.history-btn, .new-chat-btn { height: 58rpx; padding: 0 15rpx; border-radius: 18rpx; background: #f2f5f4; color: #53615c; font-size: 19rpx; }
+.new-chat-btn { color: #176b58; }
+.phone-icon { font-size: 23rpx; }
+.quick-scroll { width: 100%; flex: 0 0 74rpx; white-space: nowrap; }
+.quick-row { display: inline-flex; padding: 0 26rpx 14rpx; gap: 12rpx; }
+.quick-chip { min-height: 58rpx; padding: 0 22rpx; display: flex; align-items: center; border-radius: 29rpx; background: #fff; box-shadow: 0 5rpx 18rpx rgba(25,48,41,.05); color: #53615c; font-size: 21rpx; }
+.quick-chip:active { background: #e5f1ec; color: #176b58; transform: scale(.97); }
+.message-scroll { min-height: 0; flex: 1; }
+.message-list { display: flex; flex-direction: column; gap: 26rpx; padding: 22rpx 26rpx 34rpx; }
+.message-row { display: flex; align-items: flex-end; gap: 12rpx; }
+.from-user { justify-content: flex-end; }
+.message-avatar { width: 54rpx; height: 54rpx; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 18rpx; background: #dfece7; color: #176b58; font-size: 18rpx; font-weight: 750; }
+.message-body { max-width: 78%; }
+.message-bubble { padding: 20rpx 23rpx; border-radius: 24rpx 24rpx 24rpx 7rpx; background: #fff; box-shadow: 0 7rpx 24rpx rgba(25,48,41,.06); }
+.from-user .message-bubble { border-radius: 24rpx 24rpx 7rpx 24rpx; background: linear-gradient(145deg,#237861,#145b4b); box-shadow: 0 9rpx 22rpx rgba(23,107,88,.18); }
+.message-text { display: block; font-size: 26rpx; line-height: 1.62; color: #27322f; word-break: break-word; }
+.from-user .message-text { color: #fff; }
+.source-list { margin-top: 10rpx; display: flex; flex-wrap: wrap; gap: 8rpx; }
+.source-label, .source-item { padding: 5rpx 10rpx; border-radius: 14rpx; background: #e7efec; font-size: 17rpx; color: #6f7c77; }
+.source-label { background: transparent; padding-left: 0; }
+.tool-list { margin-top: 10rpx; border: 1rpx solid #dfe8e4; border-radius: 14rpx; background: #f8faf9; }
+.tool-row { padding: 10rpx 14rpx; color: #64716c; font-size: 19rpx; }
+.feedback-row { margin-top: 8rpx; display: flex; gap: 8rpx; }
+.feedback-btn { min-height: 44rpx; padding: 0 13rpx; border-radius: 12rpx; background: transparent; color: #82908a; font-size: 18rpx; }
+.feedback-btn.selected { background: #e5f1ec; color: #176b58; }
+.input-dock { flex: 0 0 auto; padding: 14rpx 22rpx calc(18rpx + env(safe-area-inset-bottom)); background: rgba(244,247,246,.96); }
+.input-bar { height: 92rpx; padding: 8rpx 8rpx 8rpx 26rpx; display: flex; align-items: center; gap: 12rpx; border-radius: 30rpx; background: #fff; box-shadow: 0 10rpx 35rpx rgba(25,48,41,.12); }
+.chat-input { min-width: 0; flex: 1; height: 76rpx; font-size: 25rpx; color: #18221f; }
+.input-placeholder { color: #a1aaa6; }
+.send-btn { width: 72rpx; height: 72rpx; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 24rpx; background: #176b58; color: #fff; font-size: 38rpx; font-weight: 500; }
+.send-btn:active { transform: scale(.92); }
+.send-btn[disabled] { background: #bac6c1; }
+.stop-btn { background: #b54848; font-size: 24rpx; }

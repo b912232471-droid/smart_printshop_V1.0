@@ -1,0 +1,20 @@
+# ===== Web框架 =====
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.9
+pydantic==2.8.0
+pydantic-settings==2.3.0
+python-jose[cryptography]==3.3.0
+
+# ===== 图像处理 =====
+pillow==10.4.0
+opencv-python-headless==4.10.0.84
+numpy<2  # onnxruntime需要numpy 1.x
+
+# ===== 证件照处理 =====
+onnxruntime==1.18.0
+mediapipe==0.10.14
+jax==0.7.1
+jaxlib==0.7.1
+opencv-contrib-python==4.10.0.84
+matplotlib==3.10.8

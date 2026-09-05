@@ -1,0 +1,167 @@
+<glass-nav title="预约下单"></glass-nav>
+<view class="page-shell booking-page">
+  <view class="section-head motion-fade-up">
+    <text class="section-title">预约打印</text>
+    <text class="section-subtitle">文件上传 · 打印参数 · 门店 · 时段</text>
+  </view>
+
+  <!-- Service summary -->
+  <view class="glass-card info-card card-pressable motion-fade-up motion-delay-1">
+    <view class="info-left">
+      <text class="info-emoji">📦</text>
+      <view class="info-text">
+        <text class="info-title">{{serviceName}}</text>
+        <text class="info-sub">￥{{price}} / 基础起步价</text>
+      </view>
+    </view>
+    <view class="info-tag">价格透明</view>
+  </view>
+
+  <!-- Upload -->
+  <view class="glass-card upload-card card-pressable motion-fade-up motion-delay-2" bindtap="chooseFile">
+    <view class="card-head">
+      <text class="card-title">上传文件</text>
+      <text class="card-tip">支持 PDF / 图片 / Word</text>
+    </view>
+    <view wx:if="{{!fileName}}" class="upload-empty">
+      <text class="upload-icon">🗂️</text>
+      <text class="upload-desc">点我选择文件，提交前填写打印参数</text>
+    </view>
+    <view wx:else class="upload-selected">
+      <text class="upload-icon">📄</text>
+      <view class="upload-meta">
+        <text class="upload-name">{{fileName}}</text>
+        <text class="upload-tag">已选择 · 可再次点击替换</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Counter -->
+  <view class="glass-card counter-card card-pressable motion-fade-up motion-delay-3">
+    <view class="card-head">
+      <text class="card-title">打印份数</text>
+      <text class="card-tip">最多 99 份</text>
+    </view>
+    <view class="counter">
+      <button class="counter-btn" bindtap="decreaseCount">−</button>
+      <text class="counter-num">{{count}}</text>
+      <button class="counter-btn" bindtap="increaseCount">+</button>
+    </view>
+  </view>
+
+  <!-- Print settings -->
+  <view class="glass-card settings-card card-pressable motion-fade-up motion-delay-3">
+    <view class="card-head">
+      <text class="card-title">打印参数</text>
+      <text class="card-tip">按参数核算金额</text>
+    </view>
+
+    <view class="setting-row">
+      <text class="picker-label">页数</text>
+      <view class="mini-counter">
+        <button class="mini-btn" bindtap="decreasePageCount">−</button>
+        <text class="mini-num">{{pageCount}}</text>
+        <button class="mini-btn" bindtap="increasePageCount">+</button>
+      </view>
+    </view>
+
+    <view class="divider"></view>
+
+    <picker mode="selector" range="{{duplexOptions}}" range-key="label" value="{{selectedDuplexIndex}}" bindchange="onDuplexChange">
+      <view class="picker-row">
+        <text class="picker-label">单双面</text>
+        <view class="picker-value">
+          <text>{{selectedDuplexLabel}}</text>
+          <text class="picker-arrow">↗</text>
+        </view>
+      </view>
+    </picker>
+
+    <view class="divider"></view>
+
+    <picker mode="selector" range="{{colorOptions}}" range-key="label" value="{{selectedColorIndex}}" bindchange="onColorChange">
+      <view class="picker-row">
+        <text class="picker-label">色彩</text>
+        <view class="picker-value">
+          <text>{{selectedColorLabel}}</text>
+          <text class="picker-arrow">↗</text>
+        </view>
+      </view>
+    </picker>
+
+    <view class="divider"></view>
+
+    <picker mode="selector" range="{{paperOptions}}" range-key="label" value="{{selectedPaperIndex}}" bindchange="onPaperChange">
+      <view class="picker-row">
+        <text class="picker-label">纸张</text>
+        <view class="picker-value">
+          <text>{{selectedPaperLabel}}</text>
+          <text class="picker-arrow">↗</text>
+        </view>
+      </view>
+    </picker>
+  </view>
+
+  <!-- Store -->
+  <view class="glass-card picker-card card-pressable motion-fade-up motion-delay-4">
+    <view class="card-head">
+      <text class="card-title">选择门店</text>
+      <text class="card-tip">就近取件更快</text>
+    </view>
+    <picker mode="selector" range="{{stores}}" range-key="shortName" value="{{selectedStoreIndex}}" bindchange="onStoreChange">
+      <view class="picker-row">
+        <text class="picker-label">门店</text>
+        <view class="picker-value">
+          <text>{{selectedStore.shortName || '请选择'}}</text>
+          <text class="picker-arrow">↗</text>
+        </view>
+      </view>
+    </picker>
+    <view class="store-brief" wx:if="{{selectedStore.shortName}}">
+      <text>📍 {{selectedStore.address}}</text>
+    </view>
+  </view>
+
+  <!-- Time -->
+  <view class="glass-card picker-card card-pressable motion-fade-up motion-delay-4">
+    <view class="card-head">
+      <text class="card-title">预约时间</text>
+      <text class="card-tip">预留机器档期，减少等候</text>
+    </view>
+    <picker mode="date" value="{{appointDate}}" start="{{today}}" bindchange="onDateChange">
+      <view class="picker-row">
+        <text class="picker-label">日期</text>
+        <view class="picker-value">
+          <text>{{appointDate || '请选择'}}</text>
+          <text class="picker-arrow">↗</text>
+        </view>
+      </view>
+    </picker>
+    <view class="divider"></view>
+    <picker mode="time" value="{{appointTime}}" bindchange="onTimeChange">
+      <view class="picker-row">
+        <text class="picker-label">时间</text>
+        <view class="picker-value">
+          <text>{{appointTime || '请选择'}}</text>
+          <text class="picker-arrow">↗</text>
+        </view>
+      </view>
+    </picker>
+  </view>
+
+  <!-- Total -->
+  <view class="glass-card total-card motion-fade-up motion-delay-3">
+    <view class="total-row">
+      <text class="total-label">预估合计</text>
+      <text class="total-amount">￥{{totalPrice}}</text>
+    </view>
+    <text class="total-hint">最终金额按服务单价、页数和份数核算</text>
+  </view>
+
+  <!-- Submit -->
+  <view class="submit-wrap">
+    <button class="submit-btn" bindtap="submitOrder">
+      确认预约
+    </button>
+  </view>
+</view>

@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>证件照智能处理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: rgba(118, 75, 162, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-area {
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .result-placeholder {
+            text-align: center;
+            color: #999;
+        }
+
+        .result-placeholder i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .result-image-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        .result-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .result-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .result-info p {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .result-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-download {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .tab:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        .method-ai {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .method-traditional {
+            color: #2196F3;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📸 证件照智能处理系统</h1>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <h2 class="card-title">上传与设置</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('change-bg')">换底色</button>
+                    <button class="tab" onclick="switchTab('generate-id')">生成证件照</button>
+                </div>
+
+                <div id="change-bg" class="tab-content active">
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">点击上传图片</div>
+                        <div class="upload-hint">支持 JPG、PNG、BMP 格式，最大 10MB</div>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+                    
+                    <img id="preview" class="preview-image" alt="预览图">
+                    <div id="fileInfo" class="file-info"></div>
+
+                    <div class="form-group">
+                        <label>选择背景颜色</label>
+                        <div class="color-options">
+                            <div class="color-option selected" style="background-color: #FFFFFF;" data-color="#FFFFFF" onclick="selectColor(this)"></div>
+                            <div class="color-option" style="background-color: #FF0000;" data-color="#FF0000" onclick="selectColor(this)"></div>
+                            <div class="color-option" style="background-color: #0000FF;" data-color="#0000FF" onclick="selectColor(this)"></div>
+                            <div class="color-option" style="background-color: #00FF00;" data-color="#00FF00" onclick="selectColor(this)"></div>
+                            <div class="color-option" style="background-color: #FFC0CB;" data-color="#FFC0CB" onclick="selectColor(this)"></div>
+                            <div class="color-option" style="background-color: #87CEEB;" data-color="#87CEEB" onclick="selectColor(this)"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customColor">自定义颜色</label>
+                        <input type="text" id="customColor" placeholder="#RRGGBB" value="#FFFFFF">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="outputFormat">输出格式</label>
+                        <select id="outputFormat">
+                            <option value="png">PNG（推荐，支持透明度）</option>
+                            <option value="jpg">JPG</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>增强选项</label>
+                        <div style="display: flex; gap: 15px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" id="enhanceBg" checked> 图像增强
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" id="gradientBg" checked> 渐变背景
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" id="smoothEdge" checked> 边缘平滑
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="enhanceLevel">增强级别</label>
+                        <select id="enhanceLevel">
+                            <option value="light">轻度美化</option>
+                            <option value="normal" selected>标准美化</option>
+                            <option value="strong">深度美化</option>
+                        </select>
+                    </div>
+
+                    <button class="btn" onclick="changeBackground()">开始换底色</button>
+                </div>
+
+                <div id="generate-id" class="tab-content">
+                    <div class="upload-area" onclick="document.getElementById('fileInput2').click()">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">点击上传照片</div>
+                        <div class="upload-hint">请上传包含清晰人脸的照片</div>
+                    </div>
+                    <input type="file" id="fileInput2" accept="image/*" onchange="handleFileSelect2(event)">
+                    
+                    <img id="preview2" class="preview-image" alt="预览图">
+                    <div id="fileInfo2" class="file-info"></div>
+
+                    <div class="form-group">
+                        <label for="photoSize">证件照尺寸</label>
+                        <select id="photoSize">
+                            <option value="1寸">1寸（295×413像素）</option>
+                            <option value="2寸">2寸（413×579像素）</option>
+                            <option value="小1寸">小1寸（260×378像素）</option>
+                            <option value="小2寸">小2寸（378×522像素）</option>
+                            <option value="大1寸">大1寸（390×567像素）</option>
+                            <option value="驾照">驾照（260×378像素）</option>
+                            <option value="签证(美国)">美国签证（600×600像素）</option>
+                            <option value="签证(日本)">日本签证（480×640像素）</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>背景颜色</label>
+                        <div class="color-options">
+                            <div class="color-option selected" style="background-color: #FFFFFF;" data-color="#FFFFFF" onclick="selectColor2(this)"></div>
+                            <div class="color-option" style="background-color: #FF0000;" data-color="#FF0000" onclick="selectColor2(this)"></div>
+                            <div class="color-option" style="background-color: #0000FF;" data-color="#0000FF" onclick="selectColor2(this)"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customColor2">自定义颜色</label>
+                        <input type="text" id="customColor2" placeholder="#RRGGBB" value="#FFFFFF">
+                    </div>
+
+                    <div class="form-group">
+                        <label>美化选项</label>
+                        <div style="display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap;">
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="checkbox" id="enhance" checked> 图像增强
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="generateIdPhoto()">生成证件照</button>
+                </div>
+
+
+
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">处理结果</h2>
+                
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+
+                <div class="result-area" id="resultArea">
+                    <div class="result-placeholder">
+                        <div style="font-size: 64px; margin-bottom: 20px;">📷</div>
+                        <p>请上传图片并点击按钮开始处理</p>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">正在处理中，请稍候...</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+        </footer>
+    </div>
+
+    <script>
+        // 全局变量
+        let selectedFile = null;
+        let selectedColor = '#FFFFFF';
+        let selectedColor2 = '#FFFFFF';
+
+        // 切换标签页
+        function switchTab(tabId) {
+            // 更新标签按钮状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Find and activate the clicked tab button
+            document.querySelectorAll('.tab').forEach(tab => {
+                const onclick = tab.getAttribute('onclick') || '';
+                if (onclick.includes(tabId) && onclick.includes('switchTab')) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            // 清除结果
+            clearResult();
+        }
+        
+        // 清除结果区域
+        function clearResult() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = `
+                <div class="result-placeholder">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📷</div>
+                    <p>请上传图片并点击按钮开始处理</p>
+                </div>
+            `;
+            
+            
+            hideMessages();
+        }
+
+        // 选择颜色（换底色）
+        function selectColor(element) {
+            document.querySelectorAll('#change-bg .color-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedColor = element.getAttribute('data-color');
+            document.getElementById('customColor').value = selectedColor;
+        }
+
+        // 选择颜色（生成证件照）
+        function selectColor2(element) {
+            document.querySelectorAll('#generate-id .color-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedColor2 = element.getAttribute('data-color');
+            document.getElementById('customColor2').value = selectedColor2;
+        }
+
+        // 处理文件选择（换底色）
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                showPreview(file, 'preview', 'fileInfo');
+            }
+        }
+
+        // 处理文件选择（生成证件照）
+        function handleFileSelect2(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                showPreview(file, 'preview2', 'fileInfo2');
+            }
+        }
+
+        // 显示预览
+        function showPreview(file, previewId, infoId) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                
+                const info = document.getElementById(infoId);
+                info.textContent = `文件名: ${file.name} | 大小: ${(file.size / 1024).toFixed(2)} KB | 类型: ${file.type}`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 换底色
+        async function changeBackground() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) {
+                showError('请先上传图片');
+                return;
+            }
+
+            const customColor = document.getElementById('customColor').value;
+            const outputFormat = document.getElementById('outputFormat').value;
+            const enhance = document.getElementById('enhanceBg').checked;
+            const enhanceLevel = document.getElementById('enhanceLevel').value;
+            const gradientBg = document.getElementById('gradientBg').checked;
+            const smoothEdge = document.getElementById('smoothEdge').checked;
+
+            // 验证颜色格式
+            if (!validateColor(customColor)) {
+                showError('颜色格式错误，请使用 #RRGGBB 格式');
+                return;
+            }
+
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                formData.append('bg_color', customColor);
+                formData.append('output_format', outputFormat);
+                formData.append('enhance', enhance);
+                formData.append('enhance_level', enhanceLevel);
+                formData.append('gradient_bg', gradientBg);
+                formData.append('smooth_edge', smoothEdge);
+
+                const response = await fetch('/api/v1/change-background', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.code === 0) {
+                    showResult(result.data);
+                    showSuccess('换底色成功！');
+                } else {
+                    showError(result.detail || '处理失败');
+                }
+            } catch (error) {
+                showError('请求失败: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 生成证件照
+        async function generateIdPhoto() {
+            const fileInput = document.getElementById('fileInput2');
+            if (!fileInput.files[0]) {
+                showError('请先上传照片');
+                return;
+            }
+
+            const size = document.getElementById('photoSize').value;
+            const customColor = document.getElementById('customColor2').value;
+            const enhance = document.getElementById('enhance').checked;
+
+            // 验证颜色格式
+            if (!validateColor(customColor)) {
+                showError('颜色格式错误，请使用 #RRGGBB 格式');
+                return;
+            }
+
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                formData.append('size', size);
+                formData.append('bg_color', customColor);
+                formData.append('enhance', enhance);
+
+                const response = await fetch('/api/v1/generate-id-photo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.code === 0) {
+                    showResult(result.data);
+                    showSuccess('证件照生成成功！');
+                } else {
+                    showError(result.detail || '处理失败');
+                }
+            } catch (error) {
+                showError('请求失败: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 验证颜色格式
+        function validateColor(color) {
+            const regex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+            return regex.test(color);
+        }
+
+        // 显示结果
+        function showResult(data) {
+            const resultArea = document.getElementById('resultArea');
+            
+            // 创建图片URL
+            const imageUrl = `data:image/${data.format};base64,${data.image}`;
+            
+            // 处理方法显示
+            const methodText = data.method === 'ai' ? 'AI智能处理' : '传统算法处理';
+            const methodClass = data.method === 'ai' ? 'method-ai' : 'method-traditional';
+            
+            resultArea.innerHTML = `
+                <div class="result-image-container">
+                    <img src="${imageUrl}" class="result-image" alt="处理结果">
+                    <div class="result-info">
+                        <p><strong>尺寸:</strong> ${data.width} × ${data.height} 像素</p>
+                        <p><strong>格式:</strong> ${data.format.toUpperCase()}</p>
+                        ${data.size ? `<p><strong>规格:</strong> ${data.size}</p>` : ''}
+                        <p><strong>处理方式:</strong> <span class="${methodClass}">${methodText}</span></p>
+                        ${data.enhanced ? '<p><strong>美化:</strong> 已启用</p>' : ''}
+                        ${data.auto_beauty ? '<p><strong>美颜:</strong> 已启用</p>' : ''}
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn-download" onclick="downloadImage('${imageUrl}', '${data.format}')">下载图片</button>
+                        <button class="btn-reset" onclick="resetForm()">重新上传</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 下载图片
+        function downloadImage(imageUrl, format) {
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = `证件照_${new Date().getTime()}.${format}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInput2').value = '';
+            document.getElementById('preview').style.display = 'none';
+            document.getElementById('preview2').style.display = 'none';
+            document.getElementById('fileInfo').textContent = '';
+            document.getElementById('fileInfo2').textContent = '';
+            
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = `
+                <div class="result-placeholder">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📷</div>
+                    <p>请上传图片并点击按钮开始处理</p>
+                </div>
+            `;
+            
+            hideMessages();
+        }
+
+        // 显示/隐藏加载状态
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.disabled = show;
+            });
+        }
+
+        // 显示错误消息
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // 显示成功消息
+        function showSuccess(message) {
+            const successElement = document.getElementById('successMessage');
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // 隐藏所有消息
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // 拖拽上传支持
+        const uploadAreas = document.querySelectorAll('.upload-area');
+        uploadAreas.forEach(area => {
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        // 根据当前活动的标签页设置文件
+                        if (document.getElementById('change-bg').classList.contains('active')) {
+                            document.getElementById('fileInput').files = files;
+                            handleFileSelect({ target: { files: files } });
+                        } else {
+                            document.getElementById('fileInput2').files = files;
+                            handleFileSelect2({ target: { files: files } });
+                        }
+                    } else {
+                        showError('请上传图片文件');
+                    }
+                }
+            });
+        });
+
+        // 自定义颜色输入同步
+        document.getElementById('customColor').addEventListener('input', function() {
+            const color = this.value;
+            if (validateColor(color)) {
+                document.querySelectorAll('#change-bg .color-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    if (opt.getAttribute('data-color').toUpperCase() === color.toUpperCase()) {
+                        opt.classList.add('selected');
+                    }
+                });
+            }
+        });
+
+        document.getElementById('customColor2').addEventListener('input', function() {
+            const color = this.value;
+            if (validateColor(color)) {
+                document.querySelectorAll('#generate-id .color-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    if (opt.getAttribute('data-color').toUpperCase() === color.toUpperCase()) {
+                        opt.classList.add('selected');
+                    }
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>

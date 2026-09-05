@@ -1,0 +1,51 @@
+server:
+  port: ${SCHEDULE_SERVER_PORT:8092}
+
+spring:
+  application:
+    name: schedule-service
+  datasource:
+    url: ${SCHEDULE_DATASOURCE_URL:jdbc:mysql://localhost:3306/schedule_db?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=UTF-8}
+    username: ${SCHEDULE_DATASOURCE_USERNAME:print_shop}
+    password: ${SCHEDULE_DATASOURCE_PASSWORD:}
+  sql:
+    init:
+      mode: ${SCHEDULE_SQL_INIT_MODE:never}
+  cloud:
+    nacos:
+      discovery:
+        enabled: ${NACOS_ENABLED:false}
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        metadata:
+          version: ${SCHEDULE_VERSION:1.0.0}
+
+schedule:
+  security:
+    auth:
+      enabled: ${SCHEDULE_AUTH_ENABLED:false}
+      jwt-secret: ${SCHEDULE_JWT_SECRET:${PRINTSHOP_JWT_SECRET:}}
+    field-encryption-key: ${SCHEDULE_FIELD_ENCRYPTION_KEY:${PRINTSHOP_FIELD_ENCRYPTION_KEY:}}
+  sync:
+    mock-enabled: ${SCHEDULE_SYNC_MOCK_ENABLED:false}
+    zfsoft:
+      enabled: ${SCHEDULE_SYNC_ZFSOFT_ENABLED:false}
+      base-url: ${SCHEDULE_SYNC_ZFSOFT_BASE_URL:}
+      gnmkdm: ${SCHEDULE_SYNC_ZFSOFT_GNMKDM:N253508}
+      timeout-ms: ${SCHEDULE_SYNC_ZFSOFT_TIMEOUT_MS:15000}
+    http:
+      enabled: ${SCHEDULE_SYNC_HTTP_ENABLED:false}
+      endpoint-url: ${SCHEDULE_SYNC_HTTP_ENDPOINT_URL:}
+      bearer-token: ${SCHEDULE_SYNC_HTTP_BEARER_TOKEN:}
+      timeout-ms: ${SCHEDULE_SYNC_HTTP_TIMEOUT_MS:10000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${SCHEDULE_ACTUATOR_EXPOSURE:health,info}
+  endpoint:
+    health:
+      probes:
+        enabled: true

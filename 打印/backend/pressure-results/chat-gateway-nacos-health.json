@@ -1,0 +1,21 @@
+{
+  "baseUrl": "http://127.0.0.1:18080",
+  "endpoint": "/api/chat/health",
+  "requests": 9,
+  "concurrency": 3,
+  "success": 9,
+  "failed": 0,
+  "statusCounts": {
+    "200": 9
+  },
+  "sourceCounts": {},
+  "elapsedSeconds": 0.295,
+  "requestsPerSecond": 30.52,
+  "latencySeconds": {
+    "min": 0.009,
+    "avg": 0.0963,
+    "p95": 0.271,
+    "p99": 0.271,
+    "max": 0.271
+  }
+}

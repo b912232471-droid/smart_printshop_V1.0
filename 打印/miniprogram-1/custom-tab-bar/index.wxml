@@ -1,0 +1,14 @@
+<view class="tab-shell">
+  <view
+    class="tab-item {{selected === index ? 'active' : ''}}"
+    wx:for="{{list}}"
+    wx:key="pagePath"
+    data-index="{{index}}"
+    bindtap="switchTab"
+  >
+    <view class="active-line"></view>
+    <image class="tab-icon" src="{{selected === index ? item.activeIcon : item.icon}}" mode="aspectFit"></image>
+    <text class="tab-text">{{item.text}}</text>
+    <view class="tab-badge" wx:if="{{item.badge && item.badge > 0}}">{{item.badge}}</view>
+  </view>
+</view>

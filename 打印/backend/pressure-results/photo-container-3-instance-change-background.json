@@ -1,0 +1,30 @@
+{
+  "baseUrl": "http://127.0.0.1:18191,http://127.0.0.1:18192,http://127.0.0.1:18193",
+  "baseUrls": [
+    "http://127.0.0.1:18191",
+    "http://127.0.0.1:18192",
+    "http://127.0.0.1:18193"
+  ],
+  "endpoint": "/api/photo/change-background",
+  "requests": 6,
+  "concurrency": 3,
+  "success": 6,
+  "failed": 0,
+  "statusCounts": {
+    "200": 6
+  },
+  "baseUrlCounts": {
+    "http://127.0.0.1:18191": 2,
+    "http://127.0.0.1:18193": 2,
+    "http://127.0.0.1:18192": 2
+  },
+  "elapsedSeconds": 4.855,
+  "requestsPerSecond": 1.24,
+  "latencySeconds": {
+    "min": 2.1095,
+    "avg": 2.3495,
+    "p95": 2.572,
+    "p99": 2.572,
+    "max": 2.572
+  }
+}

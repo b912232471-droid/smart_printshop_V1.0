@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.printshop.mapper.AdminMapper">
+    
+    <resultMap id="AdminResultMap" type="com.example.printshop.entity.Admin">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password_hash"/>
+        <result property="realName" column="real_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="emailHash" column="email_hash"/>
+        <result property="role" column="role"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="created_at"/>
+        <result property="lastLoginTime" column="last_login_at"/>
+    </resultMap>
+    
+    <select id="selectById" resultMap="AdminResultMap">
+        SELECT * FROM user_account WHERE id = #{id} AND account_type = 'admin'
+    </select>
+    
+    <select id="selectByUsername" resultMap="AdminResultMap">
+        SELECT * FROM user_account WHERE username = #{username} AND account_type = 'admin'
+    </select>
+    <select id="selectByEmailHash" resultMap="AdminResultMap">
+        SELECT * FROM user_account WHERE email_hash = #{emailHash} AND account_type = 'admin'
+    </select>
+    
+    <select id="selectAll" resultMap="AdminResultMap">
+        SELECT * FROM user_account WHERE account_type = 'admin' ORDER BY id ASC
+    </select>
+    
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_account
+            (username, password_hash, account_type, role, status, real_name, phone, email, email_hash)
+        VALUES
+            (#{username}, #{password}, 'admin', #{role}, #{status}, #{realName}, #{phone}, #{email}, #{emailHash})
+    </insert>
+    
+    <update id="update">
+        UPDATE user_account
+        SET username = #{username},
+            password_hash = COALESCE(#{password}, password_hash),
+            real_name = #{realName},
+            phone = #{phone},
+            email = #{email},
+            email_hash = #{emailHash},
+            role = #{role},
+            status = #{status}
+        WHERE id = #{id} AND account_type = 'admin'
+    </update>
+    
+    <delete id="delete">
+        DELETE FROM user_account WHERE id = #{id} AND account_type = 'admin'
+    </delete>
+    
+    <update id="updateLastLoginTime">
+        UPDATE user_account SET last_login_at = NOW() WHERE id = #{id} AND account_type = 'admin'
+    </update>
+    
+</mapper>
+
+

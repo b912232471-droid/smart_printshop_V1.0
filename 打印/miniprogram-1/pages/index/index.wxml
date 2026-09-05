@@ -1,0 +1,89 @@
+<glass-nav title="智慧打印"></glass-nav>
+<view class="page-shell index-shell">
+  <view class="store-strip motion-fade-up" bindtap="goLocation">
+    <view class="store-pin"><view class="pin-core"></view></view>
+    <view class="store-copy">
+      <text class="eyebrow">CURRENT STORE</text>
+      <text class="store-name">{{currentStoreName}}</text>
+    </view>
+    <text class="strip-action">更换 ›</text>
+  </view>
+
+  <view class="hero-panel motion-fade-up motion-delay-1">
+    <view class="hero-main">
+      <text class="hero-index">PRINT / 01</text>
+      <text class="hero-title">文件准备好，\n就可以开印。</text>
+      <text class="hero-note">线上选规格，到店直接取件</text>
+    </view>
+    <view class="queue-block">
+      <text class="queue-number">{{queueCount}}</text>
+      <text class="queue-unit">单待处理</text>
+      <view class="queue-status {{queueCount > 0 ? 'busy' : ''}}">
+        <view class="status-dot"></view>
+        <text wx:if="{{queueCount > 0}}">约 {{minWaitTime}}–{{maxWaitTime}} 分钟</text>
+        <text wx:else>现在可打印</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-head">
+    <text class="section-title">选择打印方式</text>
+    <text class="section-subtitle">常用服务</text>
+  </view>
+
+  <view class="service-grid">
+    <view class="service-tile service-primary card-pressable" bindtap="goCategory" data-category="文档">
+      <view class="tile-code">A4</view>
+      <view class="tile-copy">
+        <text class="tile-title">文档打印</text>
+        <text class="tile-desc">黑白 / 彩色 / 双面</text>
+      </view>
+      <text class="tile-arrow">↗</text>
+    </view>
+    <view class="service-tile card-pressable" bindtap="goCategory" data-category="照片">
+      <view class="tile-code photo-code">6″</view>
+      <view class="tile-copy">
+        <text class="tile-title">照片冲印</text>
+        <text class="tile-desc">相纸高清输出</text>
+      </view>
+      <text class="tile-arrow">↗</text>
+    </view>
+    <view class="service-tile card-pressable" bindtap="goPhoto">
+      <view class="tile-code id-code">ID</view>
+      <view class="tile-copy">
+        <text class="tile-title">证件照</text>
+        <text class="tile-desc">生成 / 智能换底</text>
+      </view>
+      <text class="tile-arrow">↗</text>
+    </view>
+    <view class="service-tile card-pressable" bindtap="goCategory" data-category="复印">
+      <view class="tile-code copy-code">2×</view>
+      <view class="tile-copy">
+        <text class="tile-title">复印扫描</text>
+        <text class="tile-desc">批量清晰处理</text>
+      </view>
+      <text class="tile-arrow">↗</text>
+    </view>
+  </view>
+
+  <view class="section-head tool-head">
+    <text class="section-title">实用工具</text>
+    <text class="section-subtitle">学习与图像</text>
+  </view>
+
+  <view class="tool-list">
+    <view class="tool-row card-pressable" bindtap="goSchedule">
+      <text class="tool-no">01</text><text class="tool-name">教务课表</text><text class="tool-meta">同步与查看</text><text class="tool-arrow">›</text>
+    </view>    <view class="tool-row card-pressable" bindtap="showComingSoon">
+      <text class="tool-no">03</text><text class="tool-name">简历排版</text><text class="tool-meta">即将开放</text><text class="tool-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="upload-banner card-pressable" bindtap="showComingSoon">
+    <view>
+      <text class="upload-kicker">BETA WORKFLOW</text>
+      <text class="upload-title">上传文件，一键下单</text>
+    </view>
+    <view class="upload-action">开始 ›</view>
+  </view>
+</view>

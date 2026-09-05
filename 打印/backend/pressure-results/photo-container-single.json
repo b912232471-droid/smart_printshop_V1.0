@@ -1,0 +1,26 @@
+{
+  "baseUrl": "http://127.0.0.1:18191",
+  "baseUrls": [
+    "http://127.0.0.1:18191"
+  ],
+  "endpoint": "/api/photo/change-background",
+  "requests": 1,
+  "concurrency": 1,
+  "success": 1,
+  "failed": 0,
+  "statusCounts": {
+    "200": 1
+  },
+  "baseUrlCounts": {
+    "http://127.0.0.1:18191": 1
+  },
+  "elapsedSeconds": 1.669,
+  "requestsPerSecond": 0.6,
+  "latencySeconds": {
+    "min": 1.6683,
+    "avg": 1.6683,
+    "p95": 1.6683,
+    "p99": 1.6683,
+    "max": 1.6683
+  }
+}

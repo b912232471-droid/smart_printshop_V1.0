@@ -1,0 +1,134 @@
+<glass-nav title="教务课表"></glass-nav>
+<view class="schedule-page page-shell">
+  <view class="glass-card schedule-hero motion-fade-up">
+    <view class="hero-top">
+      <view>
+        <text class="hero-title">教务课表</text>
+        <text class="hero-sub">绑定教务账号后，可查询已同步课程并按学期筛选。</text>
+      </view>
+      <view class="hero-badge">{{bound ? '已绑定' : '待绑定'}}</view>
+    </view>
+  </view>
+
+  <view class="glass-card state-card motion-fade-up motion-delay-1" wx:if="{{loadingStatus}}">
+    <text class="state-text">正在读取绑定状态...</text>
+  </view>
+
+  <view class="glass-card state-card motion-fade-up motion-delay-1" wx:elif="{{loginExpired}}">
+    <text class="state-title">登录已失效</text>
+    <text class="state-text">请重新进入小程序完成登录后再查看课表。</text>
+  </view>
+
+  <block wx:else>
+    <view class="glass-card account-card motion-fade-up motion-delay-1" wx:if="{{bound}}">
+      <view class="card-head">
+        <view>
+          <text class="card-title">已绑定账号</text>
+          <text class="card-desc">密码只提交到后端加密保存，不会在页面回显。</text>
+        </view>
+        <button class="text-btn" size="mini" bindtap="toggleBindForm">{{editingBind ? '收起' : '更新'}}</button>
+      </view>
+      <view class="account-grid">
+        <view class="account-item">
+          <text class="account-label">学号</text>
+          <text class="account-value">{{account.studentId}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="glass-card bind-card motion-fade-up motion-delay-2" wx:if="{{!bound || editingBind}}">
+      <view class="card-head">
+        <view>
+          <text class="card-title">{{bound ? '更新教务账号' : '绑定教务账号'}}</text>
+          <text class="card-desc">用于拉取课表，密码将由后端 AES-GCM 加密存储。</text>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="field-label">学号</text>
+        <input class="field-input" placeholder="请输入学号" value="{{bindForm.studentId}}" data-field="studentId" bindinput="onBindInput" />
+      </view>
+      <view class="field">
+        <text class="field-label">教务密码</text>
+        <input class="field-input" password placeholder="请输入教务系统密码" value="{{bindForm.jwPassword}}" data-field="jwPassword" bindinput="onBindInput" />
+      </view>
+      <button class="primary-btn" bindtap="handleBind">{{bound ? '保存新凭据' : '完成绑定'}}</button>
+    </view>
+
+    <view class="glass-card error-card motion-fade-up" wx:if="{{errorMsg}}">
+      <text class="error-text">{{errorMsg}}</text>
+    </view>
+
+    <view class="glass-card term-card motion-fade-up motion-delay-2" wx:if="{{bound}}">
+      <view class="card-head">
+        <view>
+          <text class="card-title">学期选择</text>
+          <text class="card-desc">可直接查询已存课表，或触发一次教务同步。</text>
+        </view>
+      </view>
+
+      <view class="term-tabs" wx:if="{{termList.length}}">
+        <view
+          class="term-tab {{selectedTermIndex === index ? 'active' : ''}}"
+          wx:for="{{termList}}"
+          wx:key="key"
+          wx:for-index="index"
+          bindtap="onTermTap"
+          data-index="{{index}}"
+        >
+          <text>{{item.xnm}}</text>
+          <text>{{item.xqm}} 学期</text>
+        </view>
+      </view>
+
+      <view class="term-input-grid">
+        <view class="field field-compact">
+          <text class="field-label">学年</text>
+          <input class="field-input" placeholder="例如 2025-2026" value="{{xnm}}" bindinput="onSchoolYearInput" />
+        </view>
+        <view class="field field-compact">
+          <text class="field-label">学期</text>
+          <picker mode="selector" range="{{termOptions}}" range-key="label" bindchange="onTermPickerChange">
+            <view class="picker-input">{{xqm}} 学期</view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="action-row">
+        <button class="secondary-btn" loading="{{loadingCourses}}" disabled="{{loadingCourses}}" bindtap="handleQuery">查询</button>
+        <button class="primary-btn action-main" loading="{{syncing}}" disabled="{{syncing}}" bindtap="handleSync">{{syncing ? '同步中...' : '同步课表'}}</button>
+      </view>
+    </view>
+
+    <view class="section-head" wx:if="{{bound}}">
+      <text class="section-title">课程列表</text>
+      <text class="section-subtitle">{{courseList.length}} 门课程</text>
+    </view>
+
+    <view class="glass-card state-card motion-fade-up" wx:if="{{bound && loadingCourses}}">
+      <text class="state-text">正在加载课程...</text>
+    </view>
+
+    <view class="course-list" wx:elif="{{bound && courseList.length}}">
+      <view class="glass-card course-card motion-fade-up" wx:for="{{courseList}}" wx:key="key">
+        <view class="course-main">
+          <text class="course-name">{{item.kcmc}}</text>
+          <text class="course-term">{{item.termLabel}}</text>
+        </view>
+        <view class="course-meta">
+          <text class="meta-pill">{{item.weekdayLabel}}</text>
+          <text class="meta-pill">{{item.jcs}} 节</text>
+        </view>
+        <view class="course-foot">
+          <text>{{item.placeText}}</text>
+          <text>{{item.teacherText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="glass-card empty-card motion-fade-up" wx:elif="{{bound && !loadingCourses}}">
+      <text class="empty-title">暂无课程</text>
+      <text class="empty-desc">当前学期没有已存课表。真实教务适配器接入前，同步按钮可能返回“教务同步适配器未配置”。</text>
+    </view>
+  </block>
+</view>

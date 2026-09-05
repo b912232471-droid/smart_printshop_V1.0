@@ -1,0 +1,23 @@
+{
+  "baseUrl": "http://127.0.0.1:18080",
+  "endpoint": "/api/chat/ask",
+  "requests": 12,
+  "concurrency": 3,
+  "success": 12,
+  "failed": 0,
+  "statusCounts": {
+    "200": 12
+  },
+  "sourceCounts": {
+    "knowledge": 12
+  },
+  "elapsedSeconds": 1.001,
+  "requestsPerSecond": 11.99,
+  "latencySeconds": {
+    "min": 0.0245,
+    "avg": 0.2468,
+    "p95": 0.8687,
+    "p99": 0.869,
+    "max": 0.869
+  }
+}

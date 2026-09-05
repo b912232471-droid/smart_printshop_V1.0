@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "预约下单",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "glass-nav": "/components/glass-nav/index"
+  }
+}

@@ -1,0 +1,12 @@
+.print-nav { position: fixed; inset: 0 0 auto; z-index: 999; background: rgba(255,255,255,.97); color: #18221f; box-shadow: 0 5rpx 20rpx rgba(25,48,41,.045); }
+.nav-inner { display: grid; grid-template-columns: 96rpx minmax(0,1fr) 190rpx; align-items: center; padding: 0 20rpx 0 24rpx; }
+.nav-side { display: flex; align-items: center; }
+.back-button, .brand-mark { width: 64rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.back-button { background: #eef3f1; color: #18221f; }
+.back-button:active { transform: scale(.92); }
+.back-icon { margin-top: -5rpx; font-size: 52rpx; line-height: 1; font-weight: 300; }
+.brand-mark { background: #176b58; }
+.brand-paper { width: 28rpx; height: 34rpx; position: relative; border-radius: 3rpx; background: #fff; }
+.brand-paper::after { content: ''; position: absolute; left: 6rpx; right: 6rpx; top: 9rpx; height: 3rpx; background: #176b58; box-shadow: 0 7rpx 0 #176b58, 0 14rpx 0 #176b58; }
+.nav-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 30rpx; font-weight: 700; }
+.nav-safe-space { height: 1rpx; }

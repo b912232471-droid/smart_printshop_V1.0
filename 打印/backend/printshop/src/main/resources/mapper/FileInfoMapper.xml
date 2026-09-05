@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.FileInfoMapper">
+
+    <resultMap id="FileInfoResultMap" type="com.example.printshop.entity.FileInfo">
+        <id property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileUrl" column="file_url"/>
+        <result property="uploadTime" column="upload_time"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="FileInfoResultMap">
+        SELECT * FROM file_info WHERE id = #{id}
+    </select>
+
+    <select id="selectByOrderId" resultMap="FileInfoResultMap">
+        SELECT * FROM file_info WHERE order_id = #{orderId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO file_info(order_id, file_name, file_url, upload_time)
+        VALUES (#{orderId}, #{fileName}, #{fileUrl}, #{uploadTime})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM file_info WHERE id = #{id}
+    </delete>
+
+    <select id="selectAll" resultMap="FileInfoResultMap">
+        SELECT * FROM file_info
+    </select>
+</mapper>
