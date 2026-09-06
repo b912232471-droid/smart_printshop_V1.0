@@ -32,7 +32,7 @@
 <script setup>
 import { markRaw, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { EnvironmentOutlined, FileTextOutlined, PrinterOutlined, RightOutlined, ShoppingOutlined, TeamOutlined } from '@ant-design/icons-vue'
+import { EnvironmentOutlined, FileTextOutlined, PictureOutlined, PrinterOutlined, RightOutlined, ShoppingOutlined, TeamOutlined } from '@ant-design/icons-vue'
 import { orderApi, serviceApi } from '@client/api'
 
 const router = useRouter()
@@ -43,6 +43,7 @@ const waitTime = ref('无需等待')
 const quickActions = [
   { title: '文档打印', desc: '论文、资料、办公文件', path: '/client/services?category=文档', icon: markRaw(FileTextOutlined), color: 'blue' },
   { title: '照片冲印', desc: '多尺寸高清照片', path: '/client/services?category=照片', icon: markRaw(PrinterOutlined), color: 'green' },
+  { title: 'AI 图片生成', desc: '海报手抄报一键创作', path: '/client/imagegen', icon: markRaw(PictureOutlined), color: 'purple' },
   { title: '附近门店', desc: '查看营业网点', path: '/client/stores', icon: markRaw(EnvironmentOutlined), color: 'orange' },
   { title: '我的订单', desc: '进度与取件码', path: '/client/orders', icon: markRaw(ShoppingOutlined), color: 'red' }
 ]
@@ -70,7 +71,7 @@ onMounted(async () => {
 .queue-panel span { color: rgba(255,255,255,.62); font-size: 12px; }.queue-panel strong { margin: 4px 0; font-size: 44px; line-height: 1; }.queue-panel small { color: rgba(255,255,255,.58); }
 .quick-grid { display: grid; margin-top: 16px; grid-template-columns: repeat(4, 1fr); gap: 12px; }.quick-item { display: flex; min-height: 86px; align-items: center; gap: 12px; padding: 16px; text-align: left; }
 .quick-item:hover { border-color: #91caff; box-shadow: 0 4px 14px rgba(0,0,0,.05); }.quick-item > span:nth-child(2) { min-width: 0; flex: 1; }.quick-item strong,.quick-item small { display: block; }.quick-item strong { color: #262626; font-size: 14px; }.quick-item small { margin-top: 4px; overflow: hidden; color: #8c8c8c; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
-.quick-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 4px; font-size: 19px; }.quick-icon.blue { color: #1677ff; background: #e6f4ff; }.quick-icon.green { color: #389e0d; background: #f6ffed; }.quick-icon.orange { color: #d46b08; background: #fff7e6; }.quick-icon.red { color: #cf1322; background: #fff1f0; }
+.quick-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 4px; font-size: 19px; }.quick-icon.blue { color: #1677ff; background: #e6f4ff; }.quick-icon.green { color: #389e0d; background: #f6ffed; }.quick-icon.orange { color: #d46b08; background: #fff7e6; }.quick-icon.red { color: #cf1322; background: #fff1f0; }.quick-icon.purple { color: #7c3aed; background: #f4eeff; }
 .quick-item > svg { color: #bfbfbf; }.service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }.service-card { padding: 18px; }.service-card-top { display: flex; align-items: center; justify-content: space-between; }.service-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 4px; color: #1677ff; background: #e6f4ff; }.service-card h3 { margin-top: 16px; color: #262626; font-size: 15px; }.service-card p { min-height: 40px; margin-top: 6px; color: #8c8c8c; font-size: 12px; line-height: 1.6; }.service-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }.service-bottom strong { color: #f5222d; font-size: 18px; }.service-bottom small { font-size: 11px; font-weight: 400; }
 .dark .quick-item strong,.dark .service-card h3 { color: rgba(255,255,255,.88); }.dark .quick-icon,.dark .service-icon { background: rgba(22,119,255,.14); }
 @media(max-width:1050px){.quick-grid{grid-template-columns:repeat(2,1fr)}.service-grid{grid-template-columns:repeat(2,1fr)}}

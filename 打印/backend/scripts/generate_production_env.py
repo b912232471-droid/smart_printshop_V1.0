@@ -129,6 +129,8 @@ def build_replacements(args) -> dict[str, str]:
         "PRINTSHOP_IMAGE_MODERATION_ENABLED": "true" if moderation_enabled else "false",
         "PRINTSHOP_IMAGE_MODERATION_ENDPOINT_URL": args.image_moderation_url.strip() if moderation_enabled and args.image_moderation_url.strip() else ("replace-with-image-moderation-endpoint" if moderation_enabled else ""),
         "PRINTSHOP_IMAGE_MODERATION_API_KEY": args.image_moderation_key.strip() if moderation_enabled and args.image_moderation_key.strip() else ("replace-with-image-moderation-api-key" if moderation_enabled else ""),
+        "GATEWAY_PRINT_CB_TIMEOUT": "90s",
+        "GATEWAY_PHOTO_CB_TIMEOUT": "90s",
     }
     if origin:
         replacements["PRINTSHOP_ALLOWED_ORIGINS"] = origin
@@ -138,6 +140,7 @@ def build_replacements(args) -> dict[str, str]:
     optional_values = {
         "VITE_TENCENT_MAP_KEY": args.tencent_map_key,
         "DEEPSEEK_API_KEY": args.deepseek_api_key,
+        "PRINTSHOP_DEEPSEEK_API_KEY": args.deepseek_api_key,
     }
     for key, value in optional_values.items():
         if value.strip():

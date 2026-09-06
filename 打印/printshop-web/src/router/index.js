@@ -21,6 +21,7 @@ const routes = [
       { path: 'photo', name: 'ClientPhoto', component: () => import('@client/views/Photo.vue'), meta: { title: 'AI 证件照', client: true, clientAuth: true } },
       { path: 'schedule', name: 'ClientSchedule', component: () => import('@client/views/Schedule.vue'), meta: { title: '课表查询', client: true, clientAuth: true } },
       { path: 'ocr', name: 'ClientOcr', component: () => import('@client/views/Ocr.vue'), meta: { title: '图片转文档', client: true, clientAuth: true } },
+      { path: 'imagegen', name: 'ClientImageGen', component: () => import('@client/views/ImageGen.vue'), meta: { title: 'AI 图片生成', client: true, clientAuth: true } },
       { path: 'chat', name: 'ClientChat', component: () => import('@client/views/Chat.vue'), meta: { title: '智能客服', client: true, clientAuth: true } },
       { path: 'profile', name: 'ClientProfile', component: () => import('@client/views/Profile.vue'), meta: { title: '个人中心', client: true, clientAuth: true } }
     ]
@@ -40,6 +41,7 @@ const routes = [
       { path: 'schedule', name: 'AdminSchedule', component: () => import('@admin/views/Schedule.vue'), meta: { title: '课表查询', adminAuth: true } },
       { path: 'ocr', name: 'AdminOcr', component: () => import('@admin/views/Ocr.vue'), meta: { title: 'OCR 文档转换', adminAuth: true } },
       { path: 'chat', name: 'AdminChat', component: () => import('@admin/views/Chat.vue'), meta: { title: '智能客服', adminAuth: true } },
+      { path: 'imagegen', name: 'ImageGenOps', component: () => import('@admin/views/ImageGenOps.vue'), meta: { title: 'AI 图片生成', adminAuth: true, permission: 'photo:imagegen:query' } },
       { path: 'profile', name: 'AdminProfile', component: () => import('@admin/views/Profile.vue'), meta: { title: '个人中心', adminAuth: true } },
       { path: 'admins', name: 'AdminList', component: () => import('@admin/views/AdminList.vue'), meta: { title: '管理员管理', adminAuth: true, permission: 'print:admin:list' } }
     ]

@@ -136,6 +136,20 @@ printshop:
       real-name: ${PRINTSHOP_BOOTSTRAP_ADMIN_REAL_NAME:}
       phone: ${PRINTSHOP_BOOTSTRAP_ADMIN_PHONE:}
       email: ${PRINTSHOP_BOOTSTRAP_ADMIN_EMAIL:}
+  imagegen:
+    # AI 图片生成编排（业务在 print-service，photo-service 只做模型适配，见 docs/图文生成功能更新迭代方案-2026-09-06.md）
+    photo-base-url: ${PRINTSHOP_PHOTO_BASE_URL:http://photo-service:8091}
+    # 生成图存储目录；留空时跟随 printshop.file.upload-dir 解析链路并追加 /imagegen
+    storage-dir: ${PRINTSHOP_IMAGEGEN_STORAGE_DIR:}
+    # 逗号分隔的提示词黑名单，命中即拒绝（合规红线：去水印/换脸类关键词等）
+    prompt-blocklist: ${PRINTSHOP_IMAGEGEN_PROMPT_BLOCKLIST:}
+  deepseek:
+    # 仅用于绘图提示词润色；默认与 AI 客服共用同一聚合平台（key/URL/模型逐级回落），无需单独配置
+    api-key: ${PRINTSHOP_DEEPSEEK_API_KEY:${LOCAL_DEEPSEEK_API_KEY:}}
+    base-url: ${PRINTSHOP_DEEPSEEK_BASE_URL:${DEEPSEEK_BASE_URL:https://api.deepseek.com}}
+    model: ${PRINTSHOP_DEEPSEEK_MODEL:${DEEPSEEK_MODEL:deepseek-chat}}
+    temperature: ${PRINTSHOP_DEEPSEEK_TEMPERATURE:0.7}
+    max-tokens: ${PRINTSHOP_DEEPSEEK_MAX_TOKENS:500}
 
 baidu:
   ocr:

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.v1 import change_bg, generate_id
+from app.api.v1 import change_bg, generate_id, generate_image
 from app.core.config import settings
 from app.core.metrics import metrics
 from app.core.nacos import NacosRegistration
@@ -62,8 +62,10 @@ async def collect_metrics(request: Request, call_next):
 # 注册路由
 app.include_router(change_bg.router, prefix="/api/v1", tags=["换底色"])
 app.include_router(generate_id.router, prefix="/api/v1", tags=["生成证件照"])
+app.include_router(generate_image.router, prefix="/api/v1", tags=["图片生成"])
 app.include_router(change_bg.router, prefix="/api/photo", tags=["换底色"])
 app.include_router(generate_id.router, prefix="/api/photo", tags=["生成证件照"])
+app.include_router(generate_image.router, prefix="/api/photo", tags=["图片生成"])
 
 
 @app.get("/health", summary="健康检查")

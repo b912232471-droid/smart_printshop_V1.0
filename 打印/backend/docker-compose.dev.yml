@@ -2,6 +2,9 @@ services:
   print-service:
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      PRINTSHOP_DEEPSEEK_API_KEY: "${LOCAL_DEEPSEEK_API_KEY:-}"
+      PRINTSHOP_DEEPSEEK_BASE_URL: "${DEEPSEEK_BASE_URL:-}"
+      PRINTSHOP_DEEPSEEK_MODEL: "${DEEPSEEK_MODEL:-}"
 
   gateway:
     environment:

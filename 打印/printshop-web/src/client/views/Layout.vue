@@ -120,7 +120,8 @@ import {
   AppstoreOutlined, BulbOutlined, CameraOutlined, CommentOutlined, CustomerServiceOutlined,
   DownOutlined, EnvironmentOutlined, FileTextOutlined, FullscreenOutlined, HomeOutlined,
   LockOutlined, LogoutOutlined, PrinterOutlined, ReloadOutlined, ScheduleOutlined,
-  SkinOutlined, ShoppingOutlined, TranslationOutlined, UserOutlined, HighlightOutlined, FileWordOutlined
+  SkinOutlined, ShoppingOutlined, TranslationOutlined, UserOutlined, HighlightOutlined, FileWordOutlined,
+  PictureOutlined
 } from '@ant-design/icons-vue'
 import { authApi } from '@client/api'
 import { useAuthStore } from '@client/stores/auth'
@@ -147,7 +148,8 @@ const mainNav = [
 const extensionNav = [
   { path: '/client/photo', label: 'AI 证件照', icon: CameraOutlined },
   { path: '/client/schedule', label: '课表查询', icon: ScheduleOutlined },
-  { path: '/client/ocr', label: '图片转文档', icon: FileWordOutlined }
+  { path: '/client/ocr', label: '图片转文档', icon: FileWordOutlined },
+  { path: '/client/imagegen', label: 'AI 图片生成', icon: PictureOutlined }
 ]
 const navItems = [...mainNav.slice(0, 2), ...extensionNav, ...mainNav.slice(2)]
 const mobileNav = [

@@ -143,3 +143,22 @@ export const ocrApi = {
     return request.get('/print/ocr/status')
   }
 }
+
+export const imageGenApi = {
+  models: () => request.get(printPath('/imagegen/models')),
+  templates: () => request.get(printPath('/imagegen/templates')),
+  generate(data) {
+    return request.post(printPath('/imagegen/generate'), data, { timeout: 120000 })
+  },
+  polish(data) {
+    return request.post(printPath('/imagegen/polish'), data, { timeout: 30000 })
+  },
+  records(page = 1, size = 10) {
+    return request.get(printPath('/imagegen/records'), { params: { page, size } })
+  },
+  deleteRecord: id => request.delete(printPath(`/imagegen/records/${id}`)),
+  download(ownerId, token) {
+    return request.get(printPath(`/imagegen/download/${ownerId}/${token}`), { responseType: 'blob' })
+  },
+  bindOrder: (id, orderId) => request.put(printPath(`/imagegen/records/${id}/order`), { orderId })
+}

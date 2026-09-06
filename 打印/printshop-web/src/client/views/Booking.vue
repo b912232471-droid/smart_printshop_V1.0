@@ -90,21 +90,23 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { ArrowLeftOutlined, CheckOutlined, InboxOutlined, PrinterOutlined } from '@ant-design/icons-vue'
-import { fileApi, orderApi, serviceApi, storeApi } from '@client/api'
-const route=useRoute(),router=useRouter(),loading=ref(true),submitting=ref(false),service=ref({}),stores=ref([]),fileList=ref([]),appointDate=ref(dayjs()),appointTime=ref(dayjs().add(1,'hour').startOf('hour'))
+import { fileApi, imageGenApi, orderApi, serviceApi, storeApi } from '@client/api'
+import { useImageGenDraftStore } from '@client/stores/imageGenDraft'
+const route=useRoute(),router=useRouter(),loading=ref(true),submitting=ref(false),service=ref({}),stores=ref([]),fileList=ref([]),appointDate=ref(dayjs()),appointTime=ref(dayjs().add(1,'hour').startOf('hour')),draft=useImageGenDraftStore(),boundGenId=ref(null)
 const form=reactive({paperSize:'A4',colorMode:'BLACK_WHITE',duplex:0,pageCount:1,copies:1,storeId:undefined})
 const paperOptions=[{label:'A4',value:'A4'},{label:'A3',value:'A3'},{label:'6 寸照片',value:'PHOTO_6IN'},{label:'证件照',value:'ID_PHOTO'}]
 const colorOptions=[{label:'黑白',value:'BLACK_WHITE'},{label:'彩色',value:'COLOR'}],duplexOptions=[{label:'单面',value:0},{label:'双面',value:1}]
 const unitPrice=computed(()=>Number(service.value.price||0)),totalPrice=computed(()=>(unitPrice.value*form.pageCount*form.copies).toFixed(2)),colorLabel=computed(()=>form.colorMode==='COLOR'?'彩色':'黑白')
 const storeOptions=computed(()=>stores.value.map(item=>({label:`${item.shortName||item.name} · ${item.address||''}`,value:item.id})))
 const disablePast=current=>current&&current<dayjs().startOf('day')
-function selectFile(file){fileList.value=[file];return false} function removeFile(){fileList.value=[]}
+function selectFile(file){fileList.value=[file];return false} function removeFile(){fileList.value=[];boundGenId.value=null}
 async function submitOrder(){
  if(!fileList.value.length)return message.warning('请先选择打印文件');if(!form.storeId)return message.warning('请选择取件门店');if(!appointDate.value||!appointTime.value)return message.warning('请选择预约时间')
  submitting.value=true
- try{const orderId=await orderApi.create({serviceId:Number(route.params.serviceId),storeId:form.storeId,appointTime:`${appointDate.value.format('YYYY-MM-DD')} ${appointTime.value.format('HH:mm')}:00`,copies:form.copies,pageCount:form.pageCount,duplex:form.duplex,colorMode:form.colorMode,paperSize:form.paperSize});await fileApi.upload(fileList.value[0],orderId);message.success('预约成功');router.replace(`/client/orders/${orderId}`)}finally{submitting.value=false}
+ try{const orderId=await orderApi.create({serviceId:Number(route.params.serviceId),storeId:form.storeId,appointTime:`${appointDate.value.format('YYYY-MM-DD')} ${appointTime.value.format('HH:mm')}:00`,copies:form.copies,pageCount:form.pageCount,duplex:form.duplex,colorMode:form.colorMode,paperSize:form.paperSize});await fileApi.upload(fileList.value[0],orderId);if(boundGenId.value){imageGenApi.bindOrder(boundGenId.value,orderId).catch(()=>{})}draft.clear();boundGenId.value=null;message.success('预约成功');router.replace(`/client/orders/${orderId}`)}finally{submitting.value=false}
 }
-onMounted(async()=>{try{[service.value,stores.value]=await Promise.all([serviceApi.getById(route.params.serviceId),storeApi.getActive()]);if(stores.value.length)form.storeId=stores.value[0].id;const name=service.value.name||'';if(name.includes('彩色'))form.colorMode='COLOR';if(name.includes('A3'))form.paperSize='A3';else if(name.includes('证件照'))form.paperSize='ID_PHOTO';else if(name.includes('照片'))form.paperSize='PHOTO_6IN'}finally{loading.value=false}})
+onMounted(async()=>{try{[service.value,stores.value]=await Promise.all([serviceApi.getById(route.params.serviceId),storeApi.getActive()]);if(stores.value.length)form.storeId=stores.value[0].id;const name=service.value.name||'';if(name.includes('彩色'))form.colorMode='COLOR';if(name.includes('A3'))form.paperSize='A3';else if(name.includes('证件照'))form.paperSize='ID_PHOTO';else if(name.includes('照片'))form.paperSize='PHOTO_6IN'}finally{loading.value=false}
+ if(draft.blob&&draft.blob.size){boundGenId.value=draft.genId;fileList.value=[new File([draft.blob],draft.filename||'ai-image.png',{type:'image/png'})];message.info('已带入 AI 生成图片')}})
 </script>
 <style scoped>
 /* 布局骨架 */

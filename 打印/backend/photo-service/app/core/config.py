@@ -26,23 +26,27 @@ class Settings(BaseSettings):
     IMAGE_MODEL: str = os.getenv("IMAGE_MODEL", "seedream-image-v5.0-lite")
 
     # 可选图片生成模型目录（2026-09 核实，价格以控制台账单为准）
+    # sizes 为推荐尺寸预置值，size 参数实际格式以方案 M0 联调确认为准，确认后直接改此处
     IMAGE_MODEL_CATALOG: dict = {
         "seedream-image-v5.0-lite": {
             "label": "Seedream v5.0 lite",
             "price_per_image": 0.22,
             "sync": True,
+            "sizes": ["1024x1024", "1242x1660", "1660x1242", "720x1280", "1280x720"],
             "notes": "综合性价比主力，中文文字渲染强，适合海报/手抄报",
         },
         "hy-image-v3": {
             "label": "Hy-Image-3.0",
             "price_per_image": 0.20,
             "sync": True,
+            "sizes": ["1024x1024", "1242x1660", "1660x1242", "720x1280", "1280x720"],
             "notes": "37 组预设尺寸贴合打印纸张比例，支持水印脚注",
         },
         "seedream-image-v5.0-pro": {
             "label": "Seedream v5.0 pro",
             "price_per_image": 0.30,
             "sync": True,
+            "sizes": ["1024x1024", "1242x1660", "1660x1242", "720x1280", "1280x720"],
             "notes": "旗舰质量档，>261 万像素时 0.60 元/张",
         },
     }

@@ -263,3 +263,16 @@ export const ocrApi = {
     return request.get('/print/ocr/status')
   }
 }
+
+// AI 图片生成运营（配置/记录/成本台账，权限点 photo:imagegen:*）
+export const imageGenApi = {
+  models: () => request.get(printPath('/imagegen/models')),
+  config: () => request.get(printPath('/imagegen/config')),
+  updateConfig: data => request.put(printPath('/imagegen/config'), data),
+  records: params => request.get(printPath('/imagegen/records/all'), { params: params || {} }),
+  deleteRecord: id => request.delete(printPath(`/imagegen/records/${id}`)),
+  download(ownerId, token) {
+    return request.get(printPath(`/imagegen/download/${ownerId}/${token}`), { responseType: 'blob' })
+  },
+  usage: params => request.get(printPath('/imagegen/usage'), { params: params || {} })
+}
