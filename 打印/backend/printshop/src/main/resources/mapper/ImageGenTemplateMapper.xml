@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.ImageGenTemplateMapper">
+
+    <resultMap id="ImageGenTemplateResultMap" type="com.example.printshop.entity.ImageGenTemplate">
+        <id property="id" column="id"/>
+        <result property="templateKey" column="template_key"/>
+        <result property="title" column="title"/>
+        <result property="category" column="category"/>
+        <result property="promptTemplate" column="prompt_template"/>
+        <result property="recommendedModel" column="recommended_model"/>
+        <result property="recommendedSize" column="recommended_size"/>
+        <result property="fieldsJson" column="fields_json"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="selectActive" resultMap="ImageGenTemplateResultMap">
+        SELECT id, template_key, title, category, prompt_template,
+               recommended_model, recommended_size, fields_json, sort_order, status
+        FROM image_gen_template
+        WHERE status = 1
+        ORDER BY sort_order, id
+    </select>
+</mapper>

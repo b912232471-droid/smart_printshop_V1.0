@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.ImageGenSettingsMapper">
+
+    <resultMap id="ImageGenSettingsResultMap" type="com.example.printshop.entity.ImageGenSettings">
+        <id property="id" column="id"/>
+        <result property="enabled" column="enabled"/>
+        <result property="defaultModel" column="default_model"/>
+        <result property="dailyQuotaPerUser" column="daily_quota_per_user"/>
+        <result property="maxPromptLength" column="max_prompt_length"/>
+        <result property="polishEnabled" column="polish_enabled"/>
+        <result property="moderationEnabled" column="moderation_enabled"/>
+        <result property="templatesEnabled" column="templates_enabled"/>
+        <result property="watermarkEnabled" column="watermark_enabled"/>
+        <result property="watermarkText" column="watermark_text"/>
+        <result property="dailyCostCap" column="daily_cost_cap"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="selectOne" resultMap="ImageGenSettingsResultMap">
+        SELECT * FROM image_gen_settings WHERE id = 1
+    </select>
+
+    <update id="update">
+        UPDATE image_gen_settings
+        SET enabled = #{enabled},
+            default_model = #{defaultModel},
+            daily_quota_per_user = #{dailyQuotaPerUser},
+            max_prompt_length = #{maxPromptLength},
+            polish_enabled = #{polishEnabled},
+            moderation_enabled = #{moderationEnabled},
+            templates_enabled = #{templatesEnabled},
+            watermark_enabled = #{watermarkEnabled},
+            watermark_text = #{watermarkText},
+            daily_cost_cap = #{dailyCostCap},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+    </update>
+</mapper>
