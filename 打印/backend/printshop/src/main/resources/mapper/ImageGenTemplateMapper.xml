@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.ImageGenTemplateMapper">
+
+    <resultMap id="ImageGenTemplateResultMap" type="com.example.printshop.entity.ImageGenTemplate">
+        <id property="id" column="id"/>
+        <result property="templateKey" column="template_key"/>
+        <result property="title" column="title"/>
+        <result property="category" column="category"/>
+        <result property="promptTemplate" column="prompt_template"/>
+        <result property="recommendedModel" column="recommended_model"/>
+        <result property="recommendedSize" column="recommended_size"/>
+        <result property="fieldsJson" column="fields_json"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <sql id="allColumns">
+        id, template_key, title, category, prompt_template,
+        recommended_model, recommended_size, fields_json, sort_order, status
+    </sql>
+
+    <select id="selectActive" resultMap="ImageGenTemplateResultMap">
+        SELECT <include refid="allColumns"/>
+        FROM image_gen_template
+        WHERE status = 1
+        ORDER BY sort_order, id
+    </select>
+
+    <select id="selectAll" resultMap="ImageGenTemplateResultMap">
+        SELECT <include refid="allColumns"/>
+        FROM image_gen_template
+        ORDER BY sort_order, id
+    </select>
+
+    <select id="selectById" resultMap="ImageGenTemplateResultMap">
+        SELECT <include refid="allColumns"/>
+        FROM image_gen_template
+        WHERE id = #{id}
+    </select>
+
+    <select id="countByKey" resultType="int">
+        SELECT COUNT(*)
+        FROM image_gen_template
+        WHERE template_key = #{templateKey}
+    </select>
+
+    <insert id="insert" parameterType="com.example.printshop.entity.ImageGenTemplate"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO image_gen_template
+            (template_key, title, category, prompt_template, recommended_model,
+             recommended_size, fields_json, sort_order, status)
+        VALUES
+            (#{templateKey}, #{title}, #{category}, #{promptTemplate}, #{recommendedModel},
+             #{recommendedSize}, #{fieldsJson}, #{sortOrder}, #{status})
+    </insert>
+
+    <update id="update" parameterType="com.example.printshop.entity.ImageGenTemplate">
+        UPDATE image_gen_template
+        SET title = #{title},
+            category = #{category},
+            prompt_template = #{promptTemplate},
+            recommended_model = #{recommendedModel},
+            recommended_size = #{recommendedSize},
+            fields_json = #{fieldsJson},
+            sort_order = #{sortOrder},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM image_gen_template
+        WHERE id = #{id}
+    </delete>
+</mapper>

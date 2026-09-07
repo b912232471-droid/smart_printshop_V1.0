@@ -11,4 +11,5 @@ public interface AccountService {
     Account requireActive(Integer id);
     int changePassword(Integer id, String oldPassword, String newPassword);
     int resetPassword(Integer id, String newPassword);
+    int adminResetPassword(Integer id, String newPassword);
 }

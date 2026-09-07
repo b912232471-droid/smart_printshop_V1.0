@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Sequence
 
 from app.agent_store import AgentStore
 from app.config import settings
-from app.deepseek import DeepSeekClient
+from app.llm import LlmClient
 from app.retrieval import FALLBACK_ANSWER, ChatEngine, normalize, terms
 from app.schemas import AskResponse, AskSource, ToolCallView
 from app.security import Principal
@@ -35,7 +35,7 @@ class HybridKnowledgeRetriever:
         embeddings: EmbeddingProvider,
         vectors: QdrantVectorStore,
     ):
-        self.faq_engine = ChatEngine(faq_store, DeepSeekClient())
+        self.faq_engine = ChatEngine(faq_store, LlmClient())
         self.agent_store = agent_store
         self.embeddings = embeddings
         self.vectors = vectors
@@ -127,7 +127,7 @@ class StationAgent:
         faq_store: ChatStore,
         agent_store: AgentStore,
         retriever: HybridKnowledgeRetriever,
-        llm: DeepSeekClient,
+        llm: LlmClient,
         tools: PlatformToolExecutor,
     ):
         self.faq_store = faq_store

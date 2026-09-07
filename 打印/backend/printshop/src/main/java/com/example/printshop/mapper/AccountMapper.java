@@ -16,4 +16,16 @@ public interface AccountMapper {
     int updatePassword(@Param("id") Integer id, @Param("passwordHash") String passwordHash);
     int updateLastLoginTime(Integer id);
     int updateEmailIdentity(@Param("id") Integer id, @Param("email") String email, @Param("emailHash") String emailHash);
+    List<Account> selectAccountPage(@Param("keyword") String keyword,
+                                    @Param("accountType") String accountType,
+                                    @Param("role") String role,
+                                    @Param("status") Integer status,
+                                    @Param("offset") int offset,
+                                    @Param("pageSize") int pageSize);
+    long countAccountPage(@Param("keyword") String keyword,
+                          @Param("accountType") String accountType,
+                          @Param("role") String role,
+                          @Param("status") Integer status);
+    int updateStatus(@Param("id") Integer id, @Param("status") Integer status);
+    int updateRoleById(@Param("id") Integer id, @Param("role") String role);
 }

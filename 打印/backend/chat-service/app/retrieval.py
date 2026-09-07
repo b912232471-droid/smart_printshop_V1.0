@@ -5,7 +5,7 @@ from typing import List, Sequence
 
 from app.schemas import AskResponse, AskSource, KnowledgeItem
 from app.store import ChatStore
-from app.deepseek import DeepSeekClient
+from app.llm import LlmClient
 
 
 FALLBACK_ANSWER = "我暂时没有找到足够准确的答案。你可以换一种问法，或拨打客服电话 400-778-1811 咨询人工客服。"
@@ -18,7 +18,7 @@ class Match:
 
 
 class ChatEngine:
-    def __init__(self, store: ChatStore, llm: DeepSeekClient):
+    def __init__(self, store: ChatStore, llm: LlmClient):
         self.store = store
         self.llm = llm
 

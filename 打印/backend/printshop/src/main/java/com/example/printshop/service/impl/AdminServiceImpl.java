@@ -83,10 +83,21 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public int update(Admin admin) {
         validateAdminProfile(admin, true);
+        Admin existing = adminMapper.selectById(admin.getId());
+        if (existing == null) {
+            throw ApiException.notFound("管理员不存在");
+        }
+        // role/status 未携带时回填原值，防止整实体更新清空角色锁死账户（RBAC 审查 F-03）
+        if (admin.getRole() == null || admin.getRole().isBlank()) {
+            admin.setRole(existing.getRole());
+        }
+        if (admin.getStatus() == null) {
+            admin.setStatus(existing.getStatus());
+        }
         String email = QqEmailAddress.normalize(admin.getEmail());
         String emailHash = fieldCryptoService.blindIndex(email);
-        Admin existing = adminMapper.selectByEmailHash(emailHash);
-        if (existing != null && !existing.getId().equals(admin.getId())) {
+        Admin existingByEmail = adminMapper.selectByEmailHash(emailHash);
+        if (existingByEmail != null && !existingByEmail.getId().equals(admin.getId())) {
             throw ApiException.badRequest("该QQ邮箱已存在");
         }
         admin.setUsername(email);
@@ -118,12 +129,14 @@ public class AdminServiceImpl implements AdminService {
 
     private void syncUserRole(Integer accountId, String roleKey) {
         if (accountId == null || roleKey == null || roleKey.isBlank()) {
-            return;
+            throw ApiException.badRequest("管理员角色不能为空");
         }
         Integer roleId = rbacMapper.selectRoleIdByKey(roleKey);
-        if (roleId != null) {
-            rbacMapper.insertUserRole(accountId, roleId);
+        // 查不到即抛异常回滚，禁止双写半失败（RBAC 审查 F-11）
+        if (roleId == null) {
+            throw ApiException.badRequest("角色不存在或已停用: " + roleKey);
         }
+        rbacMapper.insertUserRole(accountId, roleId);
     }
 
     @Override

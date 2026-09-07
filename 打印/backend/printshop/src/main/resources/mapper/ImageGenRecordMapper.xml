@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.ImageGenRecordMapper">
+
+    <resultMap id="ImageGenRecordResultMap" type="com.example.printshop.entity.ImageGenRecord">
+        <id property="id" column="id"/>
+        <result property="accountId" column="account_id"/>
+        <result property="token" column="token"/>
+        <result property="modelId" column="model_id"/>
+        <result property="prompt" column="prompt"/>
+        <result property="polished" column="polished"/>
+        <result property="templateKey" column="template_key"/>
+        <result property="fileUrl" column="file_url"/>
+        <result property="width" column="width"/>
+        <result property="height" column="height"/>
+        <result property="size" column="size"/>
+        <result property="usageTokens" column="usage_tokens"/>
+        <result property="costAmount" column="cost_amount"/>
+        <result property="durationMs" column="duration_ms"/>
+        <result property="moderationStatus" column="moderation_status"/>
+        <result property="status" column="status"/>
+        <result property="orderId" column="order_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <resultMap id="ImageGenUsageResultMap" type="com.example.printshop.entity.ImageGenUsage">
+        <result property="statDate" column="stat_date"/>
+        <result property="modelId" column="model_id"/>
+        <result property="genCount" column="gen_count"/>
+        <result property="totalCost" column="total_cost"/>
+        <result property="totalTokens" column="total_tokens"/>
+    </resultMap>
+
+    <sql id="allColumns">
+        id, account_id, token, model_id, prompt, polished, template_key, file_url,
+        width, height, size, usage_tokens, cost_amount, duration_ms,
+        moderation_status, status, order_id, created_at
+    </sql>
+
+    <sql id="allFilters">
+        <where>
+            status = 1
+            <if test="accountId != null">AND account_id = #{accountId}</if>
+            <if test="modelId != null and modelId != ''">AND model_id = #{modelId}</if>
+            <if test="moderationStatus != null">AND moderation_status = #{moderationStatus}</if>
+            <if test="start != null and start != ''">AND created_at &gt;= #{start}</if>
+            <if test="end != null and end != ''">AND created_at &lt; DATE_ADD(#{end}, INTERVAL 1 DAY)</if>
+        </where>
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO image_gen_record
+            (account_id, token, model_id, prompt, polished, template_key, file_url,
+             width, height, size, usage_tokens, cost_amount, duration_ms,
+             moderation_status, status, order_id)
+        VALUES
+            (#{accountId}, #{token}, #{modelId}, #{prompt}, #{polished}, #{templateKey}, #{fileUrl},
+             #{width}, #{height}, #{size}, #{usageTokens}, #{costAmount}, #{durationMs},
+             #{moderationStatus}, #{status}, #{orderId})
+    </insert>
+
+    <select id="selectById" resultMap="ImageGenRecordResultMap">
+        SELECT <include refid="allColumns"/> FROM image_gen_record WHERE id = #{id}
+    </select>
+
+    <select id="countByAccount" resultType="int">
+        SELECT COUNT(*) FROM image_gen_record WHERE status = 1 AND account_id = #{accountId}
+    </select>
+
+    <select id="selectByAccount" resultMap="ImageGenRecordResultMap">
+        SELECT <include refid="allColumns"/> FROM image_gen_record
+        WHERE status = 1 AND account_id = #{accountId}
+        ORDER BY id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM image_gen_record
+        <include refid="allFilters"/>
+    </select>
+
+    <select id="selectAll" resultMap="ImageGenRecordResultMap">
+        SELECT <include refid="allColumns"/> FROM image_gen_record
+        <include refid="allFilters"/>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <update id="softDelete">
+        UPDATE image_gen_record SET status = 0
+        WHERE id = #{id}
+          AND status = 1
+          <if test="accountId != null">AND account_id = #{accountId}</if>
+    </update>
+
+    <update id="bindOrder">
+        UPDATE image_gen_record SET order_id = #{orderId}
+        WHERE id = #{id} AND account_id = #{accountId} AND status = 1 AND order_id IS NULL
+    </update>
+
+    <select id="sumCostSinceToday" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(cost_amount), 0) FROM image_gen_record
+        WHERE created_at &gt;= CURDATE() AND cost_amount IS NOT NULL
+    </select>
+
+    <select id="aggregateUsage" resultMap="ImageGenUsageResultMap">
+        SELECT DATE(created_at) AS stat_date, model_id,
+               COUNT(*) AS gen_count,
+               COALESCE(SUM(cost_amount), 0) AS total_cost,
+               COALESCE(SUM(usage_tokens), 0) AS total_tokens
+        FROM image_gen_record
+        WHERE cost_amount IS NOT NULL
+        <if test="start != null and start != ''">AND created_at &gt;= #{start}</if>
+        <if test="end != null and end != ''">AND created_at &lt; DATE_ADD(#{end}, INTERVAL 1 DAY)</if>
+        GROUP BY DATE(created_at), model_id
+        ORDER BY stat_date DESC, model_id
+    </select>
+</mapper>

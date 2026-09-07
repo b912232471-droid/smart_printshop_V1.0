@@ -82,7 +82,10 @@ public class AdminController {
      */
     @PostMapping("/register")
     public Map<String, Object> register(@RequestBody Admin admin) {
-        AuthContext.requirePermission("print:admin:add");
+        AuthPrincipal actor = AuthContext.requirePermission("print:admin:add");
+        if (admin != null && "superadmin".equals(admin.getRole()) && !actor.isSuperAdmin()) {
+            throw ApiException.forbidden("仅超级管理员可创建 superadmin 账户");
+        }
         mailVerificationService.verify(admin.getEmail(), QqMailVerificationService.ADMIN_REGISTER, admin.getEmailCode());
         Map<String, Object> result = new HashMap<>();
         
@@ -136,14 +139,21 @@ public class AdminController {
      */
     @PutMapping("/")
     public int update(@RequestBody Admin admin) {
-        AuthContext.requirePermission("print:admin:update");
+        AuthPrincipal actor = AuthContext.requirePermission("print:admin:update");
         // 不允许通过这个接口修改密码
         Admin existing = adminService.getById(admin.getId());
         if (existing == null) {
             throw ApiException.notFound("管理员不存在");
         }
+        // 目标级防护：非 superadmin 不得修改 superadmin 账户，也不得签发 superadmin 角色
+        if ("superadmin".equals(existing.getRole()) && !actor.isSuperAdmin()) {
+            throw ApiException.forbidden("仅超级管理员可修改 superadmin 账户");
+        }
+        if ("superadmin".equals(admin.getRole()) && !actor.isSuperAdmin()) {
+            throw ApiException.forbidden("仅超级管理员可授予 superadmin 角色");
+        }
         admin.setPassword(existing.getPassword());
-        
+
         return adminService.update(admin);
     }
     

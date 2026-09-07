@@ -228,8 +228,8 @@ def check_gateway_compat(env: dict[str, str], findings: list[Finding]) -> None:
 
 
 def check_optional_integrations(env: dict[str, str], findings: list[Finding]) -> None:
-    if not env.get("DEEPSEEK_API_KEY", "").strip():
-        findings.append(Finding("WARN", "DEEPSEEK_API_KEY", "chat-service will use local knowledge-base fallback only"))
+    if not (env.get("CHAT_LLM_API_KEY", "") or env.get("DEEPSEEK_API_KEY", "")).strip():
+        findings.append(Finding("WARN", "CHAT_LLM_API_KEY", "chat-service will use local knowledge-base fallback only"))
 
     if env.get("CHAT_VECTOR_ENABLED", "").lower() != "true":
         findings.append(Finding("FAIL", "CHAT_VECTOR_ENABLED", "must be true for production Markdown semantic retrieval"))

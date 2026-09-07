@@ -24,7 +24,7 @@
 | Web | Vue 3 / Vite / Ant Design Vue / Pinia / vue-router | 3.5.x / 7.x / 4.2.x / 3.x / 4.x |
 | 小程序 | 微信原生 | — |
 | 基础设施 | MySQL 8 / Redis / Qdrant / Nacos / ClamAV / Nginx / Docker Compose | 8.0 / 7.4 / 1.15.4 / 2.5.1 / — / 1.24+ / — |
-| AI | DeepSeek API（可选） | deepseek-chat |
+| AI | StepFun（图片生成）/ TokenHub 聚合平台（客服 LLM 与润色） | step-image-edit-2 / hy3 |
 | 构建 | Maven wrapper (`mvnw`/`mvnw.cmd`) / Node 18+ / Python 3.12 | — |
 
 > ⚠️ 与计划书的差异：计划书 4.1 写「Element Plus」，**实际是 Ant Design Vue**；计划书 4.1 写「MyBatis Plus 3.5.7（课表服务）」，**实际 schedule-service 用纯 MyBatis**。计划书需要更新。
@@ -177,7 +177,7 @@ python scripts\package_java_services.py            # 打包 3 个 Java jar
 docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
-print-service 的宽松安全姿态（关闭 HTTPS 强制校验、接口限流、病毒扫描、安全告警）由 `application-dev.yml` profile 提供，dev 覆盖文件只负责注入 `SPRING_PROFILES_ACTIVE=dev`；生产 compose 默认激活 `prod` profile（HTTPS 强制、限流、ClamAV、告警全部开启，默认值对齐 `.env.example`）。课表默认启用 mock 同步；chat-service 不继承开发机 `DEEPSEEK_API_KEY`。
+print-service 的宽松安全姿态（关闭 HTTPS 强制校验、接口限流、病毒扫描、安全告警）由 `application-dev.yml` profile 提供，dev 覆盖文件只负责注入 `SPRING_PROFILES_ACTIVE=dev`；生产 compose 默认激活 `prod` profile（HTTPS 强制、限流、ClamAV、告警全部开启，默认值对齐 `.env.example`）。课表默认启用 mock 同步；chat-service 的 LLM 变量已统一为 `CHAT_LLM_*`（旧 `DEEPSEEK_*` 仍兼容读取）。
 
 > 注意：若 `mysql/data` 已存在，不要直接重生成 `.env.local` 复用旧数据目录——MySQL 数据目录中的密码仍是旧 env 初始化值。
 
@@ -203,7 +203,7 @@ python scripts\legacy_print_compat_audit.py <gateway-or-nginx-log>   # 收紧旧
 | `generate_local_dev_env.py` | 生成本地 `.env.local`（同源 JWT、字段加密密钥、首个 superadmin） |
 | `generate_production_env.py` | 生成生产 `.env.production.local` 草稿，自动生成 MySQL 密码、JWT、加密密钥、域名 CORS/Nginx 配置 |
 | `package_java_services.py` | 用 Maven wrapper + 临时 Aliyun settings 打包 3 个 Java jar |
-| `production_readiness_check.py` | 静态就绪检查（env 占位值、密钥长度一致性、HTTPS/CORS、首引导、证书、dist、模型、DeepSeek、课表适配器、旧兼容路由状态） |
+| `production_readiness_check.py` | 静态就绪检查（env 占位值、密钥长度一致性、HTTPS/CORS、首引导、证书、dist、模型、CHAT_LLM_API_KEY、课表适配器、旧兼容路由状态） |
 | `production_smoke_test.py` | 生产 Nginx/Gateway 入口 smoke（公开接口、401、带 JWT 的 photo/chat/schedule、可选真实证件照推理和课表同步） |
 | `legacy_print_compat_audit.py` | 审计 Gateway/Nginx 日志，判断是否可收紧 `GATEWAY_PRINT_COMPAT_PATHS` |
 | `photo_pressure_test.py` | photo-service 健康检查 / 真实推理压测，支持多 `--base-url` 轮询 |
@@ -276,6 +276,7 @@ python scripts\legacy_print_compat_audit.py <gateway-or-nginx-log>   # 收紧旧
 - 接口限流：print-service 默认 240/min/IP+路由组；Gateway 默认 600/min/IP+路由组；默认不信任 `X-Forwarded-For`。
 - 文件上传多层防护：扩展名 + magic bytes + PDF 结构（页数、加密、对象数、内容流复杂度）+ 图片尺寸/像素 + OOXML ZIP 防炸弹/宏/ActiveX/OLE + ClamAV + 可选图片内容审核（fail-closed）。
 - 订单金额后端重算（`service_price × page_count × copies`），不信任客户端 `totalPrice`；状态机：`0待处理→1打印中→2待取件→3已完成`，`4已取消`，禁止回退/越级/终态变更。
+- AI 图片生成：每用户日配额（Redis 计数）+ 全平台日成本熔断（超限 503 + SECURITY_ALERT 告警）+ 提示词黑名单 + 生成图内容审核（fail-closed，复用 ImageContentModerationService）；审核拒绝落记录可查。
 - 审计日志：管理员登录、订单状态变更、401/403/429 安全异常。
 - 上传文件 UUID 文件名 + 路径归一化；下载强制 `/files/<单文件名>`；响应只返回 `/api/file/download/{fileId}` 鉴权地址，不暴露内部存储路径。
 
@@ -284,7 +285,7 @@ python scripts\legacy_print_compat_audit.py <gateway-or-nginx-log>   # 收紧旧
 - FastAPI + lifespan，启动时注册 Nacos，退出时注销。
 - 暴露 `GET /api/<svc>/health`、`GET /api/<svc>/metrics`（JSON）、`GET /metrics`（Prometheus 文本）。
 - 监控指标：实例 ID、运行时长、请求总数、状态码分布、路径分布、请求耗时（chat 还含问答来源和知识库操作计数）。
-- chat-service 知识库 CRUD/批量导入要求管理员 JWT，问答接口允许用户 JWT；未配置 `DEEPSEEK_API_KEY` 时降级为关键词检索兜底。
+- chat-service 知识库 CRUD/批量导入要求管理员 JWT，问答接口允许用户 JWT；未配置 `CHAT_LLM_API_KEY`（通用 OpenAI 兼容接入，当前 TokenHub 聚合平台混元 hy3）时降级为关键词检索兜底。
 - chat-service 已升级为站内 Agent：管理员可持久化启停、配置模式/模型/工具白名单；Markdown 由 Celery Worker 分块并用本地 BGE 生成向量写入 Qdrant；FAQ 与 Markdown 做混合检索。
 - 会话、消息、摘要、Agent 运行、工具调用和反馈均持久化。模型只能调用白名单内只读工具，用户 ID 由 JWT Principal 注入，JWT 和敏感字段不进入模型上下文。
 - 生产保持 `CHAT_VECTOR_ENABLED=true`、`CHAT_VECTOR_REQUIRED=true`、`CHAT_INGESTION_INLINE=false`；Gateway 客服超时默认 90s。
@@ -335,9 +336,13 @@ python scripts\legacy_print_compat_audit.py <gateway-or-nginx-log>   # 收紧旧
 | `order_info` | 订单：含结构化打印参数 `copies / page_count / duplex / color_mode / paper_size` 和模拟 `total_price` |
 | `store` | 门店 |
 | `service_item` | 服务项目 |
+| `image_gen_record` | AI 图片生成记录（token 下载、成本快照、订单回填溯源） |
+| `image_gen_settings` / `image_gen_setting_audits` | 图片生成运营配置与变更审计（镜像 chat_settings 模式） |
+| `image_gen_template` | AI 生成校园模板（手抄报/海报/通知，占位符 prompt），管理端可 CRUD 调配 |
 | `sys_role` | RBAC 角色表：role_key/data_scope(ALL/STORE/SELF)/builtin/status |
 | `sys_menu` | RBAC 菜单权限表：M/C/F 三层、perms 权限标识、path/component |
 | `sys_user_role` / `sys_role_menu` | 账户↔角色、角色↔权限点关联 |
+| `account_quota` | 账户级功能额度覆盖（imagegen/OCR 每日额度，NULL 跟随全局、0 禁用） |
 | `v_account_roles` / `v_account_perms`（视图） | 账户→角色标识 / 账户→权限标识集合 |
 | `jw_accounts`（schedule_db） | 教务账号：`jw_password` AES-GCM 密文 |
 | `course_schedules`（schedule_db） | 课表 |
@@ -357,7 +362,10 @@ mysql/init/
 ├── 004_unified_user_account.sql # 创建 user_account，迁移旧 user/admin 数据，DROP 旧表
 ├── 005_qq_email_identity.sql   # 补齐 email_hash 字段和唯一索引
 ├── 006_drop_jw_username.sql    # schedule_db 移除 jw_accounts.jw_username 列
-└── 007_rbac_schema.sql         # RBAC 四表两视图 + 内置角色/菜单/授权种子 + 存量账户角色回填
+├── 007_rbac_schema.sql         # RBAC 四表两视图 + 内置角色/菜单/授权种子 + 存量账户角色回填
+├── 008_imagegen_schema.sql     # AI 图片生成：记录/运营配置+审计/校园模板 + RBAC 菜单 85-87
+├── 009_ocr_schema.sql          # OCR 运营管理：ocr_settings/audits/record + RBAC 菜单 88-89
+└── 010_account_admin_schema.sql # 管理端账户运营：account_quota 账户级额度表 + 权限点菜单 90-95
 ```
 
 > 004 会 DROP 旧 `user` 和 `admin` 表。Java 侧 `UserMapper` / `AdminMapper` / `AccountMapper` 都映射到 `user_account`，按 `account_type` 区分。
@@ -373,8 +381,11 @@ mysql/init/
 
 - **RBAC 权限体系（Phase 1-3 已落地，2026-09-06）**：print-service 权限内核（AuthInterceptor 装载 perms + `requirePermission` 替换三档硬编码，管理员/订单/门店/服务/用户共 22 处检查点权限点化）、`GET /api/auth/permissions` 下发 roles/perms/menus、管理员注册/更新/删除与用户注册双写 RBAC、chat-service 17 个管理端接口换成 `chat:knowledge:*` 权限点（跨库查 `print_shop.v_account_perms`，库不可用时 fail-closed 503）、前端 permission store + 路由守卫按 `meta.permission` 拦截 + Layout 菜单按权限渲染 + `v-permission` 按钮级指令 + AdminList localStorage 硬判断收口。方案见 `doc/RBAC权限体系改造方案.md`。
 
-- **百度 OCR 图片转文档**：print-service 新增 `/api/ocr/convert`、受保护下载和 `/api/ocr/status`；用户端 `/client/ocr`、管理端 `/ocr` 已接入。当前仅支持单张 JPG/PNG/BMP，使用 `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY`，未配置密钥时接口返回 503。详见 `打印\backend\docs\baidu-ocr-image-to-document.md`。
+- **管理端账户/角色/额度运营（2026-09-06 补齐）**：print-service 新增 `account` 包（`/api/account/*` 账户管理 + `/api/role/*` 角色管理）。账户管理：全账户分页检索（关键词/类型/角色/状态）、角色分配（事务双写 `user_account.role` + `sys_user_role`，禁改自身角色）、启禁用（禁自禁、superadmin 目标级防护）、重置密码（`print:user:resetPwd`）、账户级额度（`account_quota` 表覆盖 imagegen/OCR 每日额度，NULL 跟随全局、0 禁用，`AccountQuotaService` 已接入两条配额检查链路）。角色管理：角色 CRUD + 菜单授权树（`sys_role_menu` 整体替换，内置角色可改授权不可删、superadmin 内置不可停用，仍有账户的角色禁删）。前端：`/users` 改造为账户管理页（搜索/角色/状态/改密/额度弹窗）、新增 `/roles` 角色管理页（授权树半选父节点一并提交）、Layout 系统管理组新增角色管理并补上此前遗漏的 `/imagegen` 菜单项。顺带修复 RBAC 审查报告 F-03（管理员更新空 role 清空角色锁死）、F-11（角色同步静默半失败改抛异常回滚）、F-13（注册/更新 superadmin 目标级防护）、F-10（删除用户事务内清理 sys_user_role）、F-06（前端 403 分流为提示+权限刷新，不再登出）。权限点增至 35 个（菜单 90-95），admin 内置角色增授 90/91。
 
+- **百度 OCR 图片转文档**：print-service 提供 `/api/ocr/convert`、受保护下载、`/api/ocr/status` 与运营管理接口（`/api/ocr/config`、`/records`、`/usage`，2026-09-06 补齐）；用户端 `/client/ocr`；管理端 `/ocr` 含转换工具 + 运营管理 tab（功能开关、每用户每日配额、使用统计与记录查询，权限点 `print:ocr:manage/query`，菜单 88-89，转换落 `ocr_record`）。当前仅支持单张 JPG/PNG/BMP，使用 `BAIDU_OCR_API_KEY` / `BAIDU_OCR_SECRET_KEY`，未配置密钥或功能停用时接口返回 503。详见 `打印\backend\docs\baidu-ocr-image-to-document.md`。
+
+- **AI 图片生成（图文闭环，2026-09-06）**：photo-service 新增 `/api/photo/image-generate` 模型适配与 `/api/photo/image-models` 目录接口（供应商 2026-09-06 由 TokenHub 切换为阶跃星辰 StepFun `step-image-edit-2`，0.02 元/张；StepFun size 参数为 高x宽，适配层按目录 `size_axis=HxW` 自动换轴，平台侧仍为 宽x高；`IMAGE_API_KEY` 未配返回 503）；print-service 新增 `imagegen` 包编排（配额 Redis 日计数、全平台日成本熔断、生成图审核 fail-closed、`data/files/imagegen` 落盘、`image_gen_record` 记录、提示词 LLM 润色（PromptPolishService，回落共用客服 CHAT_LLM_*）、校园模板、`/api/imagegen/*` 共 11 个接口，上游额度/计费类错误透传可操作提示）；用户端 `/client/imagegen` 模板填空生成 + 一键转打印订单（Booking 预填 + 订单回填）；管理端 `/imagegen` 运营页（配置+**模板管理 CRUD**（2026-09-06 补齐，含启停/新增/编辑/删除）+记录+成本台账，RBAC `photo:imagegen:manage/query`，菜单 85-87）。方案见 `打印\backend\docs\图文生成功能更新迭代方案-2026-09-06.md`，数据库见 `008_imagegen_schema.sql`。
 - **微服务架构**：Gateway（路由 + Resilience4J 熔断 + JWT + 限流 + 请求日志 + SecureHeaders）、print-service（订单/文件/门店/服务/管理员完整业务）、photo-service（多实例换底色压测通过）、schedule-service（HTTP JSON 适配器骨架）、chat-service（可运营站内 Agent + Markdown RAG + 受控只读工具；含系统提示词版本/人工转接语、正式 `search_knowledge` 工具、文档替换、检索测试、摄取进度和 SSE `delta`）。
 - **统一账户体系**：QQ 邮箱 + 密码 + 图形验证码 + 邮箱验证码登录注册/找回/绑定；BCrypt + AES-GCM + HMAC 盲索引；管理员也走 QQ 邮箱。
 - **安全加固**：见 7.6。print-service 曾有 135+ 单元测试全部通过（2026-09-05 应要求移除全部应用侧测试类，历史代码留存于 `打印/backend-tests-backup-20260905.zip`）。
@@ -403,14 +414,15 @@ mysql/init/
 ### 9.3 待完成（生产前阻塞项）
 
 - 真实生产服务器 + 域名 + Nginx HTTPS 证书部署
-- 正式生产 `DEEPSEEK_API_KEY` 和 Qdrant/Celery 容器链路联调（本地 API Key、BGE 向量与 Agent 功能补丁已单独验证；仍缺 Docker 全链路运行级联调）
+- 正式生产 `CHAT_LLM_API_KEY` 和 Qdrant/Celery 容器链路联调（本地 API Key、BGE 向量与 Agent 功能补丁已单独验证；仍缺 Docker 全链路运行级联调）
 - 真实教务系统协议适配：`jw.unn.edu.cn`（正方教务）直连适配器已完成并用测试账号联调通过（`ZfsoftLiveSyncIT`，需 `ZFSOFT_LIVE_TEST=true` 门控运行）；其他学校教务或教务变更时仍需适配
 - 真实人脸样本生成证件照链路复测（本地只压了换底色）
 - 旧 `/api/**` 兼容路由收紧（先跑 `legacy_print_compat_audit.py` 审计日志）
 - 小程序正式发布（已弃 wx.login，发布流程需重新走 QQ 邮箱注册）
+- AI 图片生成供应商已切换为 StepFun `step-image-edit-2`（2026-09-06 真实 Key 联调通过，size=高x宽、仅 5 个固定尺寸、b64_json 返回、无 usage 字段；模板种子与线上库已同步为 `896x1184`）；⚠️ 该模型官方公告 **2026-10-10 下线**，届时更换模型只需改 photo-service `IMAGE_MODEL_CATALOG` + 模板推荐项 + `.env` 的 `IMAGE_API_BASE_URL/IMAGE_API_KEY`；P1 扩展：图生图（`/v1/images/edits`，step-image-edit-2 原生支持）、客服 Agent 生成图片工具
 - RBAC Phase 4：登录入口收口（`/api/auth/login` 扩展双类型登录 → 管理端切 `/api/print/auth/login` → 三端联调通过后注释 `/api/admin/login` 并删 Gateway/AuthInterceptor 白名单，见方案第 6.3/7 节）
 - RBAC Phase 5：数据权限落地（operator↔门店绑定 + 订单列表/查询按 `sys_role.data_scope=STORE` 过滤）
-- RBAC 注意：若未来权限点大幅增长（当前 25 个，GROUP_CONCAT 默认上限 1024 字节），需调大 `group_concat_max_len`
+- RBAC 注意：若未来权限点大幅增长（当前 35 个，GROUP_CONCAT 默认上限 1024 字节，约 45 个时静默截断），需调大 `group_concat_max_len`
 - 同步更新 `智慧打印平台-开发计划书.md` 到 V1.33+ 和 `当前工作完成清单.md`
 
 ### 9.4 已知技术债
@@ -443,6 +455,6 @@ mysql/init/
 - 改代码前先读邻近文件，确认框架/库/命名约定；不要假设某库可用。
 - Java 改动跑 `mvnw.cmd clean package -DskipTests`（测试类已移除）；Python 改动可用 `python -m compileall app` 自检；Web 改动跑 `npm run build`。
 - 不提交 `.env`、`.env.local`、`*.local`、`target/`、`node_modules/`、`dist/`、`mysql/data/`、`nginx/certs/`、上传文件。
-- 不在文档/源码/小程序包中写真实 AppSecret / JWT 密钥 / 加密密钥 / SMTP 授权码 / DeepSeek Key。
+- 不在文档/源码/小程序包中写真实 AppSecret / JWT 密钥 / 加密密钥 / SMTP 授权码 / LLM API Key。
 - 新增功能同步更新本文件 + 计划书版本号；修改安全相关字段必须同步更新 `production-security-checklist.md`。
 - 不主动 commit，除非用户明确要求；commit 前检查 `git status` / `git diff`，只 stage 预期文件。

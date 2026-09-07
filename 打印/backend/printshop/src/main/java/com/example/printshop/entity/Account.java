@@ -19,4 +19,6 @@ public class Account {
     private String createdAt;
     private String lastLoginAt;
     private String perms;
+    private Integer imagegenDailyLimit;
+    private Integer ocrDailyLimit;
 }

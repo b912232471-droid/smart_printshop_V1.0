@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from app.agent import ChatDisabledError, HybridKnowledgeRetriever, StationAgent
 from app.agent_store import AgentStore
 from app.config import settings
-from app.deepseek import DeepSeekClient
+from app.llm import LlmClient
 from app.ingestion import DocumentIngestionService, enqueue_ingestion
 from app.importer import import_knowledge_file
 from app.markdown_knowledge import save_markdown
@@ -53,7 +53,7 @@ agent_store = AgentStore(store)
 embeddings = EmbeddingProvider()
 vector_store = QdrantVectorStore()
 retriever = HybridKnowledgeRetriever(store, agent_store, embeddings, vector_store)
-agent = StationAgent(store, agent_store, retriever, DeepSeekClient(), PlatformToolExecutor())
+agent = StationAgent(store, agent_store, retriever, LlmClient(), PlatformToolExecutor())
 ingestion = DocumentIngestionService(agent_store, embeddings, vector_store)
 
 
@@ -124,7 +124,7 @@ async def api_info():
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "service": settings.SERVICE_NAME,
-        "deepseekEnabled": bool(settings.DEEPSEEK_API_KEY.strip()),
+        "deepseekEnabled": bool(settings.CHAT_LLM_API_KEY.strip()),
     }
 
 
@@ -166,7 +166,7 @@ async def chat_status():
     return ChatStatus(
         enabled=policy.enabled,
         mode=policy.mode,
-        deepseekEnabled=policy.deepseekEnabled and bool(settings.DEEPSEEK_API_KEY.strip()),
+        deepseekEnabled=policy.deepseekEnabled and bool(settings.CHAT_LLM_API_KEY.strip()),
         vectorEnabled=settings.VECTOR_ENABLED,
         serviceHours=policy.serviceHours,
         hotline=policy.hotline,
