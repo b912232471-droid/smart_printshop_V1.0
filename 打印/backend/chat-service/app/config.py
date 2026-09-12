@@ -20,10 +20,11 @@ class Settings(BaseSettings):
     AUTH_ENABLED: bool = _bool_env("CHAT_AUTH_ENABLED", "true")
     JWT_SECRET: str = os.getenv("CHAT_JWT_SECRET", os.getenv("PRINTSHOP_JWT_SECRET", ""))
 
-    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
-    DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-    DEEPSEEK_MODEL: str = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
-    DEEPSEEK_TIMEOUT_SECONDS: int = int(os.getenv("DEEPSEEK_TIMEOUT_SECONDS", "25"))
+    # 通用 OpenAI 兼容 LLM 接入（客服 Agent 与问答；旧 DEEPSEEK_* 变量名保留回退，历史命名已废弃）
+    CHAT_LLM_API_KEY: str = os.getenv("CHAT_LLM_API_KEY", os.getenv("DEEPSEEK_API_KEY", ""))
+    CHAT_LLM_BASE_URL: str = os.getenv("CHAT_LLM_BASE_URL", os.getenv("DEEPSEEK_BASE_URL", "https://tokenhub.tencentmaas.com/v1"))
+    CHAT_LLM_MODEL: str = os.getenv("CHAT_LLM_MODEL", os.getenv("DEEPSEEK_MODEL", "hy3"))
+    CHAT_LLM_TIMEOUT_SECONDS: int = int(os.getenv("CHAT_LLM_TIMEOUT_SECONDS", os.getenv("DEEPSEEK_TIMEOUT_SECONDS", "25")))
 
     REDIS_URL: str = os.getenv("CHAT_REDIS_URL", "redis://redis:6379/2")
     QDRANT_URL: str = os.getenv("CHAT_QDRANT_URL", "http://qdrant:6333")

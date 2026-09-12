@@ -37,7 +37,8 @@ def main() -> int:
     parser.add_argument("--domain", default="", help="Production domain, for example www.guangxun.ltd.")
     parser.add_argument("--allowed-origins", default="", help="Allowed origins. Defaults to https://<domain> when --domain is set.")
     parser.add_argument("--tencent-map-key", default="", help="Tencent map browser key for admin build.")
-    parser.add_argument("--deepseek-api-key", default="", help="DeepSeek API key for chat-service.")
+    parser.add_argument("--llm-api-key", "--deepseek-api-key", dest="llm_api_key", default="",
+                        help="LLM API key for chat-service and prompt polish (OpenAI-compatible; TokenHub hy3).")
     parser.add_argument("--schedule-sync-url", default="", help="HTTP JSON schedule adapter endpoint URL.")
     parser.add_argument("--schedule-sync-token", default="", help="Bearer token for the HTTP JSON schedule adapter.")
     parser.add_argument("--enable-schedule-sync", action="store_true", help="Set SCHEDULE_SYNC_HTTP_ENABLED=true.")
@@ -139,8 +140,8 @@ def build_replacements(args) -> dict[str, str]:
         replacements["NGINX_SERVER_NAME"] = domain
     optional_values = {
         "VITE_TENCENT_MAP_KEY": args.tencent_map_key,
-        "DEEPSEEK_API_KEY": args.deepseek_api_key,
-        "PRINTSHOP_DEEPSEEK_API_KEY": args.deepseek_api_key,
+        "CHAT_LLM_API_KEY": args.llm_api_key,
+        "PRINTSHOP_LLM_API_KEY": args.llm_api_key,
     }
     for key, value in optional_values.items():
         if value.strip():

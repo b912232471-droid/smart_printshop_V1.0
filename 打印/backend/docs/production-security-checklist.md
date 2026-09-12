@@ -100,3 +100,5 @@
 
 - 后续新增的其他敏感字段加密存储。
 - AI证件照服务本地 Docker 3 容器换底色推理压测和 Gateway/Nacos 健康检查链路压测已完成并留存结果；生产上线前仍需使用正式 `.env`、Nginx/Gateway 入口和真实人脸样本补做生成证件照链路验证。客服服务本地 Nacos/Gateway 问答与健康检查压测已完成并留存结果；生产上线前仍需做真实 DeepSeek Key 联调和正式 Nginx/Gateway 入口复测。课表服务还需按目标学校教务协议配置/实现 HTTP 适配器后做真实账号联调。
+- 验证 AI 图片生成：`IMAGE_API_KEY` 未配置时生成接口返回 503；每用户日配额（Redis）与全平台日成本熔断生效且超限有 SECURITY_ALERT 日志；生成图内容审核保持 fail-closed（`PRINTSHOP_IMAGE_MODERATION_*` 已配置且 `image_gen_settings.moderation_enabled=1`）；下载接口无 JWT 返回 401、跨用户访问返回 403；提示词黑名单（`PRINTSHOP_IMAGEGEN_PROMPT_BLOCKLIST`）覆盖去水印/换脸类关键词。
+- 验证 AI 图片生成网关超时：`GATEWAY_PRINT_CB_TIMEOUT=90s`、`GATEWAY_PHOTO_CB_TIMEOUT=90s` 已注入 Gateway，生成请求不被 10s 默认值熔断。

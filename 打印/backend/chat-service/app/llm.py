@@ -10,10 +10,12 @@ from app.schemas import KnowledgeItem
 logger = logging.getLogger(__name__)
 
 
-class DeepSeekClient:
+class LlmClient:
+    """通用 OpenAI 兼容 chat/completions 客户端（当前指向 TokenHub 聚合平台的混元 hy3）"""
+
     @property
     def available(self) -> bool:
-        return bool(settings.DEEPSEEK_API_KEY.strip())
+        return bool(settings.CHAT_LLM_API_KEY.strip())
 
     def generate(self, question: str, contexts: Sequence[KnowledgeItem]) -> str | None:
         if not self.available:
@@ -51,7 +53,7 @@ class DeepSeekClient:
         if not self.available:
             return None
         payload: Dict[str, Any] = {
-            "model": model or settings.DEEPSEEK_MODEL,
+            "model": model or settings.CHAT_LLM_MODEL,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
@@ -60,16 +62,16 @@ class DeepSeekClient:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"
         request = urllib.request.Request(
-            f"{settings.DEEPSEEK_BASE_URL.rstrip('/')}/chat/completions",
+            f"{settings.CHAT_LLM_BASE_URL.rstrip('/')}/chat/completions",
             data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
             headers={
-                "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY.strip()}",
+                "Authorization": f"Bearer {settings.CHAT_LLM_API_KEY.strip()}",
                 "Content-Type": "application/json",
             },
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=settings.DEEPSEEK_TIMEOUT_SECONDS) as response:
+            with urllib.request.urlopen(request, timeout=settings.CHAT_LLM_TIMEOUT_SECONDS) as response:
                 data = json.loads(response.read().decode("utf-8"))
             choices = data.get("choices") or []
             if not choices or not isinstance(choices[0], dict):
@@ -77,5 +79,5 @@ class DeepSeekClient:
             message = choices[0].get("message") or {}
             return message if isinstance(message, dict) else None
         except (OSError, urllib.error.HTTPError, json.JSONDecodeError, UnicodeDecodeError):
-            logger.warning("DeepSeek request failed", exc_info=True)
+            logger.warning("LLM request failed", exc_info=True)
             return None

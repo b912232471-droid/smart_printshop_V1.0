@@ -17,23 +17,18 @@
         <result property="avatarUrl" column="avatar_url"/>
         <result property="createdAt" column="created_at"/>
         <result property="lastLoginAt" column="last_login_at"/>
+        <result property="imagegenDailyLimit" column="imagegen_daily_limit"/>
+        <result property="ocrDailyLimit" column="ocr_daily_limit"/>
     </resultMap>
 
     <select id="selectById" resultMap="AccountResultMap">
         SELECT * FROM user_account WHERE id = #{id}
     </select>
 
-    <!-- RBAC：鉴权链路专用，合并装载 v_account_perms 权限集合，避免每请求二次查库 -->
-    <resultMap id="AccountWithPermsResultMap" type="com.example.printshop.entity.Account" extends="AccountResultMap">
-        <result property="perms" column="perms"/>
-    </resultMap>
-    <select id="selectWithPermsById" resultMap="AccountWithPermsResultMap">
-        SELECT a.*,
-               (SELECT GROUP_CONCAT(DISTINCT p.permission ORDER BY p.permission SEPARATOR ',')
-                  FROM v_account_perms p
-                 WHERE p.account_id = a.id) AS perms
-        FROM user_account a
-        WHERE a.id = #{id}
+    <!-- RBAC：鉴权链路专用账号装载；权限集合由 AuthInterceptor 经 RbacMapper.selectPermissions
+         行式装载（GROUP_CONCAT 受 group_concat_max_len 1024 字节限制，权限点增长后会静默截断） -->
+    <select id="selectWithPermsById" resultMap="AccountResultMap">
+        SELECT * FROM user_account WHERE id = #{id}
     </select>
     <select id="selectByUsername" resultMap="AccountResultMap">
         SELECT * FROM user_account WHERE username = #{username}
@@ -58,5 +53,55 @@
     </update>
     <update id="updateEmailIdentity">
         UPDATE user_account SET email = #{email}, email_hash = #{emailHash} WHERE id = #{id}
+    </update>
+
+    <!-- 管理端账户管理：分页列表，联查账户级额度覆盖 -->
+    <select id="selectAccountPage" resultMap="AccountResultMap">
+        SELECT a.*, q.imagegen_daily_limit, q.ocr_daily_limit
+        FROM user_account a
+        LEFT JOIN account_quota q ON q.account_id = a.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (a.username LIKE CONCAT('%', #{keyword}, '%') OR a.display_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="accountType != null and accountType != ''">
+                AND a.account_type = #{accountType}
+            </if>
+            <if test="role != null and role != ''">
+                AND a.role = #{role}
+            </if>
+            <if test="status != null">
+                AND a.status = #{status}
+            </if>
+        </where>
+        ORDER BY a.created_at DESC, a.id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="countAccountPage" resultType="long">
+        SELECT COUNT(*)
+        FROM user_account a
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (a.username LIKE CONCAT('%', #{keyword}, '%') OR a.display_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="accountType != null and accountType != ''">
+                AND a.account_type = #{accountType}
+            </if>
+            <if test="role != null and role != ''">
+                AND a.role = #{role}
+            </if>
+            <if test="status != null">
+                AND a.status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateStatus">
+        UPDATE user_account SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="updateRoleById">
+        UPDATE user_account SET role = #{role} WHERE id = #{id}
     </update>
 </mapper>

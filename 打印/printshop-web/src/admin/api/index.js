@@ -150,6 +150,50 @@ export const adminApi = {
   }
 }
 
+// 账户管理（全部账户：角色/状态/重置密码/额度，权限点 print:user:*）
+export const accountApi = {
+  list(params) {
+    return request.get(printPath('/account/list'), { params: params || {} })
+  },
+  updateStatus(id, status) {
+    return request.put(printPath(`/account/${id}/status`), null, { params: { status } })
+  },
+  updateRole(id, role) {
+    return request.put(printPath(`/account/${id}/role`), { role })
+  },
+  resetPassword(id, newPassword) {
+    return request.post(printPath(`/account/${id}/reset-password`), { newPassword })
+  },
+  quota(id) {
+    return request.get(printPath(`/account/${id}/quota`))
+  },
+  setQuota(id, data) {
+    return request.put(printPath(`/account/${id}/quota`), data)
+  }
+}
+
+// 角色管理（角色 CRUD + 菜单授权，权限点 print:role:*）
+export const roleApi = {
+  list() {
+    return request.get(printPath('/role/list'))
+  },
+  menuTree() {
+    return request.get(printPath('/role/menu-tree'))
+  },
+  menus(id) {
+    return request.get(printPath(`/role/${id}/menus`))
+  },
+  create(data) {
+    return request.post(printPath('/role/'), data)
+  },
+  update(id, data) {
+    return request.put(printPath(`/role/${id}`), data)
+  },
+  delete(id) {
+    return request.delete(printPath(`/role/${id}`))
+  }
+}
+
 // AI 客服知识库 + 智能问答
 export const chatApi = {
   ask(data) {
@@ -261,10 +305,14 @@ export const ocrApi = {
   },
   status() {
     return request.get('/print/ocr/status')
-  }
+  },
+  config: () => request.get(printPath('/ocr/config')),
+  updateConfig: data => request.put(printPath('/ocr/config'), data),
+  records: params => request.get(printPath('/ocr/records'), { params: params || {} }),
+  usage: params => request.get(printPath('/ocr/usage'), { params: params || {} })
 }
 
-// AI 图片生成运营（配置/记录/成本台账，权限点 photo:imagegen:*）
+// AI 图片生成运营（配置/模板/记录/成本台账，权限点 photo:imagegen:*）
 export const imageGenApi = {
   models: () => request.get(printPath('/imagegen/models')),
   config: () => request.get(printPath('/imagegen/config')),
@@ -274,5 +322,9 @@ export const imageGenApi = {
   download(ownerId, token) {
     return request.get(printPath(`/imagegen/download/${ownerId}/${token}`), { responseType: 'blob' })
   },
-  usage: params => request.get(printPath('/imagegen/usage'), { params: params || {} })
+  usage: params => request.get(printPath('/imagegen/usage'), { params: params || {} }),
+  templatesAll: () => request.get(printPath('/imagegen/templates/all')),
+  createTemplate: data => request.post(printPath('/imagegen/templates'), data),
+  updateTemplate: (id, data) => request.put(printPath(`/imagegen/templates/${id}`), data),
+  deleteTemplate: id => request.delete(printPath(`/imagegen/templates/${id}`))
 }

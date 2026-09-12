@@ -82,9 +82,9 @@ services:
       PRINTSHOP_PHOTO_BASE_URL: ${PRINTSHOP_PHOTO_BASE_URL:-http://photo-service:8091}
       PRINTSHOP_IMAGEGEN_STORAGE_DIR: ${PRINTSHOP_IMAGEGEN_STORAGE_DIR:-}
       PRINTSHOP_IMAGEGEN_PROMPT_BLOCKLIST: ${PRINTSHOP_IMAGEGEN_PROMPT_BLOCKLIST:-}
-      PRINTSHOP_DEEPSEEK_API_KEY: ${PRINTSHOP_DEEPSEEK_API_KEY:-}
-      PRINTSHOP_DEEPSEEK_BASE_URL: ${PRINTSHOP_DEEPSEEK_BASE_URL:-https://api.deepseek.com}
-      PRINTSHOP_DEEPSEEK_MODEL: ${PRINTSHOP_DEEPSEEK_MODEL:-deepseek-chat}
+      PRINTSHOP_LLM_API_KEY: ${PRINTSHOP_LLM_API_KEY:-}
+      PRINTSHOP_LLM_BASE_URL: ${PRINTSHOP_LLM_BASE_URL:-https://tokenhub.tencentmaas.com/v1}
+      PRINTSHOP_LLM_MODEL: ${PRINTSHOP_LLM_MODEL:-hy3}
     volumes:
       - ./data/files:/data/files
     expose:
@@ -133,10 +133,10 @@ services:
       PHOTO_MAX_IMAGE_HEIGHT: ${PHOTO_MAX_IMAGE_HEIGHT:-8000}
       PHOTO_MAX_IMAGE_PIXELS: ${PHOTO_MAX_IMAGE_PIXELS:-24000000}
       MODEL_PATH: ${PHOTO_MODEL_PATH:-pretrained/modnet.onnx}
-      IMAGE_API_BASE_URL: ${IMAGE_API_BASE_URL:-https://tokenhub.tencentmaas.com/v1}
+      IMAGE_API_BASE_URL: ${IMAGE_API_BASE_URL:-https://api.stepfun.com/v1}
       IMAGE_API_KEY: ${IMAGE_API_KEY:-}
       IMAGE_API_TIMEOUT_SECONDS: ${IMAGE_API_TIMEOUT_SECONDS:-60}
-      IMAGE_MODEL: ${IMAGE_MODEL:-seedream-image-v5.0-lite}
+      IMAGE_MODEL: ${IMAGE_MODEL:-step-image-edit-2}
     expose:
       - "8091"
     restart: unless-stopped
@@ -170,10 +170,10 @@ services:
       CHAT_TOOL_TIMEOUT_SECONDS: ${CHAT_TOOL_TIMEOUT_SECONDS:-8}
       CHAT_AGENT_MAX_STEPS: ${CHAT_AGENT_MAX_STEPS:-4}
       CHAT_HISTORY_LIMIT: ${CHAT_HISTORY_LIMIT:-12}
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
-      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
-      DEEPSEEK_TIMEOUT_SECONDS: ${DEEPSEEK_TIMEOUT_SECONDS:-25}
+      CHAT_LLM_API_KEY: ${CHAT_LLM_API_KEY:-${DEEPSEEK_API_KEY:-}}
+      CHAT_LLM_BASE_URL: ${CHAT_LLM_BASE_URL:-${DEEPSEEK_BASE_URL:-https://tokenhub.tencentmaas.com/v1}}
+      CHAT_LLM_MODEL: ${CHAT_LLM_MODEL:-${DEEPSEEK_MODEL:-hy3}}
+      CHAT_LLM_TIMEOUT_SECONDS: ${CHAT_LLM_TIMEOUT_SECONDS:-25}
     volumes:
       - ./data/chat-documents:/data/chat-documents
       - ./data/models/fastembed:/models/fastembed

@@ -111,9 +111,10 @@ public class AccountServiceImpl implements AccountService {
             return;
         }
         Integer roleId = rbacMapper.selectRoleIdByKey(roleKey);
-        if (roleId != null) {
-            rbacMapper.insertUserRole(accountId, roleId);
+        if (roleId == null) {
+            throw ApiException.badRequest("角色不存在或已停用: " + roleKey);
         }
+        rbacMapper.insertUserRole(accountId, roleId);
     }
 
     @Override
@@ -129,6 +130,16 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public int resetPassword(Integer id, String newPassword) {
         requireActive(id);
+        validateNewPassword(newPassword);
+        return accountMapper.updatePassword(id, passwordEncoder.encode(newPassword));
+    }
+
+    @Override
+    public int adminResetPassword(Integer id, String newPassword) {
+        Account account = accountMapper.selectById(id);
+        if (account == null) {
+            throw ApiException.notFound("账户不存在");
+        }
         validateNewPassword(newPassword);
         return accountMapper.updatePassword(id, passwordEncoder.encode(newPassword));
     }

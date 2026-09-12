@@ -41,3 +41,12 @@ Thumbs.db
 *.log
 run_output.txt
 compile_output.txt
+
+# Local docs, DB scripts and test artifacts (not tracked)
+/AGENTS.md
+/打印/AI测试工程师-测试任务Prompt.md
+/打印/backend/docs/会员与卡密体系设计方案-2026-09-12.md
+/打印/backend/mysql/init/010_account_admin_schema.sql
+/打印/backend/mysql/init/011_rbac_menu_granularity.sql
+/打印/test-evidence/
+/打印/test-reports/

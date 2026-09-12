@@ -144,7 +144,8 @@ import {
   AppstoreOutlined, BulbOutlined, CameraOutlined, CloseOutlined, CommentOutlined,
   DashboardOutlined, DownOutlined, EnvironmentOutlined, FileTextOutlined, FullscreenOutlined,
   HighlightOutlined, LockOutlined, LogoutOutlined, MessageOutlined, MenuFoldOutlined,
-  MenuOutlined, MenuUnfoldOutlined, ReloadOutlined, SafetyCertificateOutlined, ScheduleOutlined,
+  MenuOutlined, MenuUnfoldOutlined, PictureOutlined, ReloadOutlined, SafetyOutlined,
+  SafetyCertificateOutlined, ScheduleOutlined,
   ShopOutlined, SkinOutlined, TeamOutlined, TranslationOutlined, UserOutlined, FileWordOutlined
 } from '@ant-design/icons-vue'
 import { adminApi } from '@/api'
@@ -179,16 +180,18 @@ const MENU_ITEMS = {
   '/photo': { icon: CameraOutlined, label: 'AI 证件照' },
   '/schedule': { icon: ScheduleOutlined, label: '课表查询' },
   '/ocr': { icon: FileWordOutlined, label: '图片转文档' },
+  '/imagegen': { icon: PictureOutlined, label: 'AI 图片生成' },
   '/chat': { icon: MessageOutlined, label: '智能客服' },
   '/profile': { icon: UserOutlined, label: '个人中心' },
-  '/users': { icon: TeamOutlined, label: '用户管理' },
+  '/users': { icon: TeamOutlined, label: '账户管理' },
+  '/roles': { icon: SafetyOutlined, label: '角色管理' },
   '/knowledge': { icon: CommentOutlined, label: '客服知识库' },
   '/admins': { icon: UserOutlined, label: '管理员管理' }
 }
 const MENU_GROUPS = {
   'print-business': { icon: ShopOutlined, label: '打印业务', items: ['/orders', '/services', '/stores'] },
-  'extension-services': { icon: AppstoreOutlined, label: '拓展功能', items: ['/photo', '/schedule', '/ocr'] },
-  'system-manage': { icon: SafetyCertificateOutlined, label: '系统管理', items: ['/profile', '/users', '/knowledge', '/admins'] }
+  'extension-services': { icon: AppstoreOutlined, label: '拓展功能', items: ['/photo', '/schedule', '/ocr', '/imagegen'] },
+  'system-manage': { icon: SafetyCertificateOutlined, label: '系统管理', items: ['/profile', '/users', '/roles', '/knowledge', '/admins'] }
 }
 
 const menuItem = path => ({ key: path, icon: icon(MENU_ITEMS[path].icon), label: MENU_ITEMS[path].label })

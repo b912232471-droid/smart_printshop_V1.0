@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.OcrRecordMapper">
+
+    <resultMap id="OcrRecordResultMap" type="com.example.printshop.entity.OcrRecord">
+        <id property="id" column="id"/>
+        <result property="accountId" column="account_id"/>
+        <result property="username" column="username"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="charCount" column="char_count"/>
+        <result property="durationMs" column="duration_ms"/>
+        <result property="status" column="status"/>
+        <result property="failureReason" column="failure_reason"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <sql id="recordColumns">
+        r.id, r.account_id, a.username, r.file_name, r.file_size, r.char_count,
+        r.duration_ms, r.status, r.failure_reason, r.created_at
+    </sql>
+
+    <insert id="insert" parameterType="com.example.printshop.entity.OcrRecord"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ocr_record
+            (account_id, file_name, file_size, char_count, duration_ms, status, failure_reason)
+        VALUES
+            (#{accountId}, #{fileName}, #{fileSize}, #{charCount}, #{durationMs}, #{status}, #{failureReason})
+    </insert>
+
+    <select id="selectAll" resultMap="OcrRecordResultMap">
+        SELECT <include refid="recordColumns"/>
+        FROM ocr_record r
+        LEFT JOIN user_account a ON a.id = r.account_id
+        <where>
+            <if test="accountId != null">AND r.account_id = #{accountId}</if>
+            <if test="status != null">AND r.status = #{status}</if>
+            <if test="start != null and start != ''">AND r.created_at &gt;= CONCAT(#{start}, ' 00:00:00')</if>
+            <if test="end != null and end != ''">AND r.created_at &lt;= CONCAT(#{end}, ' 23:59:59')</if>
+        </where>
+        ORDER BY r.id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM ocr_record r
+        <where>
+            <if test="accountId != null">AND r.account_id = #{accountId}</if>
+            <if test="status != null">AND r.status = #{status}</if>
+            <if test="start != null and start != ''">AND r.created_at &gt;= CONCAT(#{start}, ' 00:00:00')</if>
+            <if test="end != null and end != ''">AND r.created_at &lt;= CONCAT(#{end}, ' 23:59:59')</if>
+        </where>
+    </select>
+
+    <select id="aggregateUsage" resultType="map">
+        SELECT
+            COUNT(*) AS totalCount,
+            COALESCE(SUM(CASE WHEN r.status = 1 THEN 1 ELSE 0 END), 0) AS successCount,
+            COALESCE(SUM(CASE WHEN r.status = 2 THEN 1 ELSE 0 END), 0) AS failedCount,
+            COALESCE(SUM(r.char_count), 0) AS totalCharCount,
+            COALESCE(ROUND(AVG(NULLIF(r.duration_ms, 0))), 0) AS avgDurationMs
+        FROM ocr_record r
+        <where>
+            <if test="start != null and start != ''">AND r.created_at &gt;= CONCAT(#{start}, ' 00:00:00')</if>
+            <if test="end != null and end != ''">AND r.created_at &lt;= CONCAT(#{end}, ' 23:59:59')</if>
+        </where>
+    </select>
+</mapper>

@@ -2,9 +2,7 @@ services:
   print-service:
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      PRINTSHOP_DEEPSEEK_API_KEY: "${LOCAL_DEEPSEEK_API_KEY:-}"
-      PRINTSHOP_DEEPSEEK_BASE_URL: "${DEEPSEEK_BASE_URL:-}"
-      PRINTSHOP_DEEPSEEK_MODEL: "${DEEPSEEK_MODEL:-}"
+      PRINTSHOP_LLM_API_KEY: "${CHAT_LLM_API_KEY:-}"
 
   gateway:
     environment:
@@ -25,14 +23,11 @@ services:
       - "${SCHEDULE_DEV_PORT:-8092}:8092"
 
   photo-service:
-    environment:
-      IMAGE_API_KEY: "${LOCAL_DEEPSEEK_API_KEY:-}"
     ports:
       - "${PHOTO_DEV_PORT:-8091}:8091"
 
   chat-service:
     environment:
       CHAT_DATABASE_URL: "mysql+pymysql://${MYSQL_USER:-print_shop}:${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}@mysql:3306/${CHAT_DATABASE:-chatbot_db}?charset=utf8mb4"
-      DEEPSEEK_API_KEY: "${LOCAL_DEEPSEEK_API_KEY:-}"
     ports:
       - "${CHAT_DEV_PORT:-8093}:8093"

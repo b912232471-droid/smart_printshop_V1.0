@@ -19,35 +19,24 @@ class Settings(BaseSettings):
     MODEL_PATH: str = os.getenv("MODEL_PATH", "pretrained/modnet.onnx")
     MAX_IMAGE_SIZE: int = int(os.getenv("MAX_IMAGE_SIZE", os.getenv("PHOTO_MAX_IMAGE_WIDTH", "4096")))
 
-    # AI 图片生成配置（TokenHub，10 元/百万 tokens 按张折算，未配 Key 时接口返回 503）
-    IMAGE_API_BASE_URL: str = os.getenv("IMAGE_API_BASE_URL", "https://tokenhub.tencentmaas.com/v1")
+    # AI 图片生成配置（阶跃星辰 StepFun，0.02 元/张，未配 Key 时接口返回 503）
+    IMAGE_API_BASE_URL: str = os.getenv("IMAGE_API_BASE_URL", "https://api.stepfun.com/v1")
     IMAGE_API_KEY: str = os.getenv("IMAGE_API_KEY", "")
     IMAGE_API_TIMEOUT_SECONDS: int = int(os.getenv("IMAGE_API_TIMEOUT_SECONDS", "60"))
-    IMAGE_MODEL: str = os.getenv("IMAGE_MODEL", "seedream-image-v5.0-lite")
+    IMAGE_MODEL: str = os.getenv("IMAGE_MODEL", "step-image-edit-2")
 
-    # 可选图片生成模型目录（2026-09 核实，价格以控制台账单为准）
-    # sizes 为推荐尺寸预置值，size 参数实际格式以方案 M0 联调确认为准，确认后直接改此处
+    # 可选图片生成模型目录（2026-09-06 真实 Key 联调核实）
+    # sizes 为平台约定的 宽x高；StepFun API 实际为 高x宽（size_axis=HxW），适配层自动换轴
+    # 注意：step-image-edit-2 官方公告 2026-10-10 下线，届时换模型只需改本目录 + 模板推荐项
     IMAGE_MODEL_CATALOG: dict = {
-        "seedream-image-v5.0-lite": {
-            "label": "Seedream v5.0 lite",
-            "price_per_image": 0.22,
+        "step-image-edit-2": {
+            "label": "Step Image Edit 2",
+            "price_per_image": 0.02,
             "sync": True,
-            "sizes": ["1024x1024", "1242x1660", "1660x1242", "720x1280", "1280x720"],
-            "notes": "综合性价比主力，中文文字渲染强，适合海报/手抄报",
-        },
-        "hy-image-v3": {
-            "label": "Hy-Image-3.0",
-            "price_per_image": 0.20,
-            "sync": True,
-            "sizes": ["1024x1024", "1242x1660", "1660x1242", "720x1280", "1280x720"],
-            "notes": "37 组预设尺寸贴合打印纸张比例，支持水印脚注",
-        },
-        "seedream-image-v5.0-pro": {
-            "label": "Seedream v5.0 pro",
-            "price_per_image": 0.30,
-            "sync": True,
-            "sizes": ["1024x1024", "1242x1660", "1660x1242", "720x1280", "1280x720"],
-            "notes": "旗舰质量档，>261 万像素时 0.60 元/张",
+            "sizes": ["1024x1024", "768x1360", "1360x768", "896x1184", "1184x896"],
+            "size_axis": "HxW",
+            "supports_watermark": False,
+            "notes": "文生图+图像编辑一体，中文文字渲染强，秒级响应，适合海报/手抄报",
         },
     }
     

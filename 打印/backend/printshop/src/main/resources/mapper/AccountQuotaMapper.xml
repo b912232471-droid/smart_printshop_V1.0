@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.AccountQuotaMapper">
+
+    <resultMap id="AccountQuotaResultMap" type="com.example.printshop.entity.AccountQuota">
+        <id property="accountId" column="account_id"/>
+        <result property="imagegenDailyLimit" column="imagegen_daily_limit"/>
+        <result property="ocrDailyLimit" column="ocr_daily_limit"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="selectByAccountId" resultMap="AccountQuotaResultMap">
+        SELECT * FROM account_quota WHERE account_id = #{accountId}
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO account_quota (account_id, imagegen_daily_limit, ocr_daily_limit, updated_by)
+        VALUES (#{accountId}, #{imagegenDailyLimit}, #{ocrDailyLimit}, #{updatedBy})
+        ON DUPLICATE KEY UPDATE
+            imagegen_daily_limit = VALUES(imagegen_daily_limit),
+            ocr_daily_limit = VALUES(ocr_daily_limit),
+            updated_by = VALUES(updated_by)
+    </insert>
+</mapper>

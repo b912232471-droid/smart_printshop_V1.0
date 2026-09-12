@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.printshop.mapper.SysRoleMapper">
+
+    <resultMap id="SysRoleResultMap" type="com.example.printshop.entity.SysRole">
+        <id property="id" column="id"/>
+        <result property="roleKey" column="role_key"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleSort" column="role_sort"/>
+        <result property="dataScope" column="data_scope"/>
+        <result property="builtin" column="builtin"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="userCount" column="user_count"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="SysRoleResultMap">
+        SELECT * FROM sys_role ORDER BY role_sort, id
+    </select>
+
+    <select id="selectAllWithUserCount" resultMap="SysRoleResultMap">
+        SELECT r.*, (SELECT COUNT(*) FROM sys_user_role ur WHERE ur.role_id = r.id) AS user_count
+        FROM sys_role r
+        ORDER BY r.role_sort, r.id
+    </select>
+
+    <select id="selectById" resultMap="SysRoleResultMap">
+        SELECT * FROM sys_role WHERE id = #{id}
+    </select>
+
+    <select id="selectByKey" resultMap="SysRoleResultMap">
+        SELECT * FROM sys_role WHERE role_key = #{roleKey}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_role (role_key, role_name, role_sort, data_scope, builtin, status, remark)
+        VALUES (#{roleKey}, #{roleName}, #{roleSort}, #{dataScope}, 0, #{status}, #{remark})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_role
+        SET role_name = #{roleName},
+            role_sort = #{roleSort},
+            data_scope = #{dataScope},
+            status = #{status},
+            remark = #{remark}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM sys_role WHERE id = #{id}
+    </delete>
+
+    <select id="countUsers" resultType="int">
+        SELECT COUNT(*) FROM sys_user_role WHERE role_id = #{roleId}
+    </select>
+
+    <select id="selectMenuIdsByRoleId" resultType="java.lang.Integer">
+        SELECT menu_id FROM sys_role_menu WHERE role_id = #{roleId}
+    </select>
+
+    <delete id="deleteRoleMenus">
+        DELETE FROM sys_role_menu WHERE role_id = #{roleId}
+    </delete>
+
+    <insert id="insertRoleMenus">
+        INSERT IGNORE INTO sys_role_menu (role_id, menu_id) VALUES
+        <foreach collection="menuIds" item="menuId" separator=",">
+            (#{roleId}, #{menuId})
+        </foreach>
+    </insert>
+
+    <select id="countMenusByIds" resultType="int">
+        SELECT COUNT(*) FROM sys_menu WHERE id IN
+        <foreach collection="menuIds" item="menuId" separator="," open="(" close=")">
+            #{menuId}
+        </foreach>
+    </select>
+</mapper>

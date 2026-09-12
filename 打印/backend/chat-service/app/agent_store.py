@@ -88,7 +88,7 @@ class AgentStore:
                     json.dumps(DEFAULT_ALLOWED_TOOLS, ensure_ascii=False),
                     DEFAULT_SYSTEM_PROMPT,
                     DEFAULT_SYSTEM_PROMPT_VERSION,
-                    settings.DEEPSEEK_MODEL,
+                    settings.CHAT_LLM_MODEL,
                     0.2,
                     800,
                     "400-778-1811",
