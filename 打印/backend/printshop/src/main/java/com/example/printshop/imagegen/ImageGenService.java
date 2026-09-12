@@ -51,6 +51,18 @@ public class ImageGenService {
     private static final long COST_CACHE_MS = 60_000;
     private static final long MAX_IMAGE_BYTES = 30 * 1024 * 1024;
 
+    /**
+     * 内置提示词黑名单默认词表（涉暴恐/涉黄/涉政违禁 + 去水印/换脸合规红线）。
+     * PRINTSHOP_IMAGEGEN_PROMPT_BLOCKLIST 配置后整体覆盖本词表。
+     */
+    private static final String[] DEFAULT_PROMPT_BLOCKLIST = {
+            "暴力", "血腥", "杀人", "自杀", "恐怖", "爆炸", "枪战", "斩首", "虐待",
+            "色情", "淫秽", "裸体", "全裸", "性爱", "援交",
+            "法轮", "邪教", "反动", "分裂国家", "毒品", "冰毒", "赌博",
+            "去水印", "消除水印", "去除水印", "去logo", "去除logo", "去标志", "换脸", "deepfake", "face swap",
+            "nude", "porn", "hentai", "nsfw"
+    };
+
     private final ImageGenRecordMapper recordMapper;
     private final ImageGenSettingsService settingsService;
     private final ImageGenQuotaService quotaService;
@@ -91,7 +103,9 @@ public class ImageGenService {
         this.objectMapper = objectMapper;
         this.photoBaseUrl = photoBaseUrl == null ? "http://photo-service:8091" : photoBaseUrl.trim();
         List<String> words = new ArrayList<>();
-        if (promptBlocklist != null && !promptBlocklist.isBlank()) {
+        if (promptBlocklist == null || promptBlocklist.isBlank()) {
+            words.addAll(List.of(DEFAULT_PROMPT_BLOCKLIST));
+        } else {
             for (String word : promptBlocklist.split("[,，]")) {
                 if (!word.isBlank()) {
                     words.add(word.trim());
@@ -139,13 +153,14 @@ public class ImageGenService {
         }
         String cleanedPrompt = sanitizePrompt(prompt, settings.getMaxPromptLength());
 
+        Map<String, Object> catalog = modelCatalog();
+        ModelSelection selection = resolveModel(catalog, model);
+        validateSizeAgainstCatalog(catalog, selection.model(), size);
+        checkDailyCostCap(settings);
+
         int effectiveQuota = accountQuotaService.resolveDailyQuota(
                 accountId, AccountQuotaService.FEATURE_IMAGEGEN, settings.getDailyQuotaPerUser());
         int quotaRemaining = quotaService.tryConsume(accountId, effectiveQuota);
-        checkDailyCostCap(settings);
-
-        Map<String, Object> catalog = modelCatalog();
-        BigDecimal costAmount = requireModelInCatalog(catalog, model);
 
         String finalPrompt = cleanedPrompt;
         boolean polishedFlag = false;
@@ -166,7 +181,7 @@ public class ImageGenService {
                 && settings.getWatermarkText() != null && !settings.getWatermarkText().isBlank()
                 ? settings.getWatermarkText().trim() : null;
 
-        PhotoResult photoResult = callPhotoService(authorization, model, finalPrompt, size, watermarkText);
+        PhotoResult photoResult = callPhotoService(authorization, selection.model(), finalPrompt, size, watermarkText);
         byte[] imageBytes = photoResult.bytes();
 
         int moderationStatus = 1;
@@ -175,7 +190,7 @@ public class ImageGenService {
                 moderationService.moderate(pngMultipartFile(imageBytes));
             } catch (ApiException exception) {
                 if (exception.getStatus() == HttpStatus.BAD_REQUEST.value()) {
-                    recordRejected(accountId, model, finalPrompt, templateKey, size, polishedFlag);
+                    recordRejected(accountId, selection.model(), finalPrompt, templateKey, size, polishedFlag);
                     throw ApiException.badRequest("生成内容未通过合规检测，请调整描述后重试");
                 }
                 throw exception;
@@ -189,7 +204,7 @@ public class ImageGenService {
         ImageGenRecord record = new ImageGenRecord();
         record.setAccountId(accountId);
         record.setToken(token);
-        record.setModelId(model);
+        record.setModelId(selection.model());
         record.setPrompt(finalPrompt);
         record.setPolished(polishedFlag ? 1 : 0);
         record.setTemplateKey(templateKey);
@@ -197,7 +212,7 @@ public class ImageGenService {
         record.setWidth(dimensions[0]);
         record.setHeight(dimensions[1]);
         record.setSize(size);
-        record.setCostAmount(costAmount);
+        record.setCostAmount(selection.cost());
         record.setModerationStatus(moderationStatus);
         record.setStatus(1);
         record.setOrderId(null);
@@ -208,7 +223,7 @@ public class ImageGenService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("id", record.getId());
         result.put("token", token);
-        result.put("model", model);
+        result.put("model", selection.model());
         result.put("prompt", finalPrompt);
         result.put("polished", polishedFlag);
         result.put("templateKey", templateKey);
@@ -217,9 +232,75 @@ public class ImageGenService {
         result.put("size", size);
         result.put("downloadUrl", "/api/print/imagegen/download/" + accountId + "/" + token);
         result.put("previewUrl", "data:image/png;base64," + Base64.getEncoder().encodeToString(imageBytes));
-        result.put("costAmount", costAmount);
+        result.put("costAmount", selection.cost());
         result.put("quotaRemaining", quotaRemaining);
         return result;
+    }
+
+    private record ModelSelection(String model, BigDecimal cost) {
+    }
+
+    /** 模型白名单解析：缺省回落目录首个模型；目录不可用且未指定时 400（校验先于配额扣减，失败不产生任何费用） */
+    private ModelSelection resolveModel(Map<String, Object> catalog, String model) {
+        if (catalog == null) {
+            if (model == null || model.isBlank()) {
+                throw ApiException.badRequest("model 不能为空");
+            }
+            // 模型目录拉取失败时跳过本地白名单，photo-service 端仍会校验
+            return new ModelSelection(model, null);
+        }
+        String effective = model == null || model.isBlank() ? firstModelId(catalog) : model;
+        if (effective == null) {
+            throw ApiException.serviceUnavailable("暂无可用生成模型，请稍后重试");
+        }
+        return new ModelSelection(effective, requireModelInCatalog(catalog, effective));
+    }
+
+    private String firstModelId(Map<String, Object> catalog) {
+        Object models = catalog.get("models");
+        if (models instanceof List<?> list) {
+            for (Object item : list) {
+                if (item instanceof Map<?, ?> entry) {
+                    Object id = entry.get("id");
+                    if (id != null && !String.valueOf(id).isBlank()) {
+                        return String.valueOf(id);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /** 尺寸白名单校验（目录可用时）：非法尺寸在配额扣减前 400，避免失败请求烧配额 */
+    private void validateSizeAgainstCatalog(Map<String, Object> catalog, String model, String size) {
+        if (catalog == null || size == null || size.isBlank()) {
+            return;
+        }
+        Object models = catalog.get("models");
+        if (!(models instanceof List<?> list)) {
+            return;
+        }
+        for (Object item : list) {
+            if (item instanceof Map<?, ?> entry && model != null && model.equals(String.valueOf(entry.get("id")))) {
+                Object sizes = entry.get("sizes");
+                if (sizes instanceof List<?> allowed && !allowed.isEmpty()
+                        && !allowed.contains(size.toLowerCase(Locale.ROOT))) {
+                    throw ApiException.badRequest("不支持的图片尺寸，可用尺寸：" + joinSizes(allowed));
+                }
+                return;
+            }
+        }
+    }
+
+    private String joinSizes(List<?> sizes) {
+        StringBuilder builder = new StringBuilder();
+        for (Object size : sizes) {
+            if (builder.length() > 0) {
+                builder.append(" / ");
+            }
+            builder.append(size);
+        }
+        return builder.toString();
     }
 
     private record PhotoResult(byte[] bytes, Integer usageTokens, Integer durationMs) {
@@ -312,7 +393,7 @@ public class ImageGenService {
         Object models = catalog.get("models");
         if (models instanceof List<?> list) {
             for (Object item : list) {
-                if (item instanceof Map<?, ?> entry && model.equals(String.valueOf(entry.get("id")))) {
+                if (item instanceof Map<?, ?> entry && model != null && model.equals(String.valueOf(entry.get("id")))) {
                     Object price = entry.get("pricePerImage");
                     if (price instanceof Number number) {
                         return BigDecimal.valueOf(number.doubleValue());

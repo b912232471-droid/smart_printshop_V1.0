@@ -9,7 +9,7 @@
 
     <section class="surface ops-card">
       <a-tabs v-model:activeKey="activeTab">
-        <a-tab-pane key="config" tab="运营配置">
+        <a-tab-pane v-if="canManage" key="config" tab="运营配置">
           <a-spin :spinning="configLoading">
             <a-form layout="vertical" class="config-form">
               <div class="config-grid">
@@ -50,7 +50,7 @@
           </a-spin>
         </a-tab-pane>
 
-        <a-tab-pane key="templates" tab="模板管理">
+        <a-tab-pane v-if="canManage" key="templates" tab="模板管理">
           <div class="filter-row">
             <a-button v-permission="'photo:imagegen:manage'" type="primary" @click="openTemplateModal()">新增模板</a-button>
             <a-button @click="loadTemplates">刷新</a-button>
@@ -65,7 +65,7 @@
                   :checked="record.status === 1"
                   checked-children="启用"
                   un-checked-children="停用"
-                  :disabled="!canManageTemplate"
+                  :disabled="!canManage"
                   @change="value => toggleTemplate(record, value)"
                 />
               </template>
@@ -81,7 +81,7 @@
           </a-table>
         </a-tab-pane>
 
-        <a-tab-pane key="records" tab="生成记录">
+        <a-tab-pane v-if="canQuery" key="records" tab="生成记录">
           <div class="filter-row">
             <a-input-number v-model:value="recordFilters.accountId" :min="1" placeholder="用户 ID" style="width: 120px" />
             <a-select v-model:value="recordFilters.modelId" :options="modelOptions" placeholder="模型" allow-clear style="width: 190px" />
@@ -110,7 +110,7 @@
           </a-table>
         </a-tab-pane>
 
-        <a-tab-pane key="usage" tab="成本台账">
+        <a-tab-pane v-if="canQuery" key="usage" tab="成本台账">
           <div class="filter-row">
             <a-range-picker v-model:value="usageRange" value-format="YYYY-MM-DD" />
             <a-button type="primary" @click="loadUsage">查询</a-button>
@@ -175,9 +175,10 @@ import { message } from 'ant-design-vue'
 import { imageGenApi } from '@/api'
 import { usePermissionStore } from '@/stores/permission'
 
-const activeTab = ref('config')
 const permissionStore = usePermissionStore()
-const canManageTemplate = computed(() => permissionStore.hasPerm('photo:imagegen:manage'))
+const canManage = computed(() => permissionStore.hasPerm('photo:imagegen:manage'))
+const canQuery = computed(() => permissionStore.hasPerm('photo:imagegen:query'))
+const activeTab = ref(canManage.value ? 'config' : 'records')
 
 const form = reactive({
   enabledBool: true,
@@ -276,11 +277,15 @@ const recordPagination = computed(() => ({
 }))
 
 onMounted(async () => {
-  loadConfig()
+  if (canManage.value) {
+    loadConfig()
+    loadTemplates()
+  }
   loadModels()
-  loadTemplates()
-  loadRecords()
-  loadUsage()
+  if (canQuery.value) {
+    loadRecords()
+    loadUsage()
+  }
 })
 
 async function loadTemplates() {

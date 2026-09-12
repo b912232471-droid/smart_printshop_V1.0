@@ -25,17 +25,10 @@
         SELECT * FROM user_account WHERE id = #{id}
     </select>
 
-    <!-- RBAC：鉴权链路专用，合并装载 v_account_perms 权限集合，避免每请求二次查库 -->
-    <resultMap id="AccountWithPermsResultMap" type="com.example.printshop.entity.Account" extends="AccountResultMap">
-        <result property="perms" column="perms"/>
-    </resultMap>
-    <select id="selectWithPermsById" resultMap="AccountWithPermsResultMap">
-        SELECT a.*,
-               (SELECT GROUP_CONCAT(DISTINCT p.permission ORDER BY p.permission SEPARATOR ',')
-                  FROM v_account_perms p
-                 WHERE p.account_id = a.id) AS perms
-        FROM user_account a
-        WHERE a.id = #{id}
+    <!-- RBAC：鉴权链路专用账号装载；权限集合由 AuthInterceptor 经 RbacMapper.selectPermissions
+         行式装载（GROUP_CONCAT 受 group_concat_max_len 1024 字节限制，权限点增长后会静默截断） -->
+    <select id="selectWithPermsById" resultMap="AccountResultMap">
+        SELECT * FROM user_account WHERE id = #{id}
     </select>
     <select id="selectByUsername" resultMap="AccountResultMap">
         SELECT * FROM user_account WHERE username = #{username}

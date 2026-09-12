@@ -59,8 +59,8 @@
           <template v-else-if="column.key === 'action'">
             <div class="table-actions">
               <a-button v-permission="'print:user:update'" type="link" size="small" :disabled="!canOperate(record)" @click="openRoleModal(record)">分配角色</a-button>
-              <a-popconfirm v-permission="'print:user:update'" :title="record.status === 1 ? '禁用后该账户将无法登录，确定？' : '确定恢复该账户？'" ok-text="确定" cancel-text="取消" @confirm="toggleStatus(record)">
-                <a-button type="link" size="small" :disabled="!canOperate(record) || isSelf(record)">{{ record.status === 1 ? '禁用' : '启用' }}</a-button>
+              <a-popconfirm :title="record.status === 1 ? '禁用后该账户将无法登录，确定？' : '确定恢复该账户？'" ok-text="确定" cancel-text="取消" @confirm="toggleStatus(record)">
+                <a-button v-permission="'print:user:update'" type="link" size="small" :disabled="!canOperate(record) || isSelf(record)">{{ record.status === 1 ? '禁用' : '启用' }}</a-button>
               </a-popconfirm>
               <a-button v-permission="'print:user:resetPwd'" type="link" size="small" :disabled="!canOperate(record)" @click="openResetPwdModal(record)">重置密码</a-button>
               <a-button v-permission="'print:user:quota'" type="link" size="small" @click="openQuotaModal(record)">额度</a-button>

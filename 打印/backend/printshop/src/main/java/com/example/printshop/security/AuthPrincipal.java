@@ -1,7 +1,6 @@
 package com.example.printshop.security;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class AuthPrincipal {
@@ -11,19 +10,6 @@ public class AuthPrincipal {
     private String role;
     private String username;
     private Set<String> perms = Collections.emptySet();
-
-    public static Set<String> parsePerms(String permsCsv) {
-        if (permsCsv == null || permsCsv.isBlank()) {
-            return Collections.emptySet();
-        }
-        Set<String> perms = new LinkedHashSet<>();
-        for (String perm : permsCsv.split(",")) {
-            if (!perm.isBlank()) {
-                perms.add(perm.trim());
-            }
-        }
-        return perms;
-    }
 
     public Set<String> getPerms() {
         return perms;

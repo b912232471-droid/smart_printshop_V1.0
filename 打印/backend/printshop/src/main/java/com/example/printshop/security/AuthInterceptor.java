@@ -10,15 +10,15 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AuthInterceptor implements HandlerInterceptor {
     private final JwtService jwtService;
     private final com.example.printshop.service.AccountService accountService;
+    private final com.example.printshop.mapper.RbacMapper rbacMapper;
 
     @org.springframework.beans.factory.annotation.Autowired
-    public AuthInterceptor(JwtService jwtService, com.example.printshop.service.AccountService accountService) {
+    public AuthInterceptor(JwtService jwtService,
+                           com.example.printshop.service.AccountService accountService,
+                           com.example.printshop.mapper.RbacMapper rbacMapper) {
         this.jwtService = jwtService;
         this.accountService = accountService;
-    }
-
-    AuthInterceptor(JwtService jwtService) {
-        this(jwtService, null);
+        this.rbacMapper = rbacMapper;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                     || !account.getUsername().equals(principal.getUsername())) {
                 throw ApiException.unauthorized("account token is stale");
             }
-            principal.setPerms(AuthPrincipal.parsePerms(account.getPerms()));
+            principal.setPerms(new java.util.HashSet<>(rbacMapper.selectPermissions(principal.getId())));
         }
         AuthContext.set(principal);
         return true;

@@ -38,12 +38,12 @@ const routes = [
       { path: 'roles', name: 'RoleList', component: () => import('@admin/views/RoleList.vue'), meta: { title: '角色管理', adminAuth: true, permission: 'print:role:list' } },
       { path: 'stores', name: 'StoreList', component: () => import('@admin/views/StoreList.vue'), meta: { title: '店铺管理', adminAuth: true, permission: 'print:store:list' } },
       { path: 'knowledge', name: 'KnowledgeBase', component: () => import('@admin/views/KnowledgeBase.vue'), meta: { title: '客服知识库', adminAuth: true, permission: 'chat:knowledge:manage' } },
-      { path: 'photo', name: 'AdminPhoto', component: () => import('@admin/views/Photo.vue'), meta: { title: 'AI 证件照', adminAuth: true } },
-      { path: 'schedule', name: 'AdminSchedule', component: () => import('@admin/views/Schedule.vue'), meta: { title: '课表查询', adminAuth: true } },
-      { path: 'ocr', name: 'AdminOcr', component: () => import('@admin/views/Ocr.vue'), meta: { title: 'OCR 文档转换', adminAuth: true } },
-      { path: 'chat', name: 'AdminChat', component: () => import('@admin/views/Chat.vue'), meta: { title: '智能客服', adminAuth: true } },
-      { path: 'imagegen', name: 'ImageGenOps', component: () => import('@admin/views/ImageGenOps.vue'), meta: { title: 'AI 图片生成', adminAuth: true, permission: 'photo:imagegen:query' } },
-      { path: 'profile', name: 'AdminProfile', component: () => import('@admin/views/Profile.vue'), meta: { title: '个人中心', adminAuth: true } },
+      { path: 'photo', name: 'AdminPhoto', component: () => import('@admin/views/Photo.vue'), meta: { title: 'AI 证件照', adminAuth: true, permission: 'photo:idphoto:view' } },
+      { path: 'schedule', name: 'AdminSchedule', component: () => import('@admin/views/Schedule.vue'), meta: { title: '课表查询', adminAuth: true, permission: 'schedule:query:view' } },
+      { path: 'ocr', name: 'AdminOcr', component: () => import('@admin/views/Ocr.vue'), meta: { title: 'OCR 文档转换', adminAuth: true, permission: 'print:ocr:view' } },
+      { path: 'chat', name: 'AdminChat', component: () => import('@admin/views/Chat.vue'), meta: { title: '智能客服', adminAuth: true, permission: 'chat:ask:view' } },
+      { path: 'imagegen', name: 'ImageGenOps', component: () => import('@admin/views/ImageGenOps.vue'), meta: { title: 'AI 图片生成', adminAuth: true, permission: 'photo:imagegen:view' } },
+      { path: 'profile', name: 'AdminProfile', component: () => import('@admin/views/Profile.vue'), meta: { title: '个人中心', adminAuth: true, permission: 'print:profile:view' } },
       { path: 'admins', name: 'AdminList', component: () => import('@admin/views/AdminList.vue'), meta: { title: '管理员管理', adminAuth: true, permission: 'print:admin:list' } }
     ]
   },
